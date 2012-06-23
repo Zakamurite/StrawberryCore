@@ -417,6 +417,14 @@ enum Opcodes
     SMSG_LEVELUP_INFO,
     CMSG_LEARN_TALENT,
     CMSG_LEARN_PREVIEW_TALENTS,
+    // Custom
+    CMSG_CONTACT_LIST,
+    SMSG_CONTACT_LIST,
+    CMSG_ADD_FRIEND,
+    CMSG_DEL_FRIEND,
+    CMSG_ADD_IGNORE,
+    CMSG_DEL_IGNORE,
+    SMSG_FRIEND_STATUS,
     MAX_OPCODE_VALUE
 };
 
@@ -486,14 +494,7 @@ enum Opcodes335a
     SMSG_WHO                                        = 0x063,
     CMSG_WHOIS                                      = 0x064,
     SMSG_WHOIS                                      = 0x065,
-    CMSG_CONTACT_LIST                               = 0x066,
-    SMSG_CONTACT_LIST                               = 0x067,
-    SMSG_FRIEND_STATUS                              = 0x068,
-    CMSG_ADD_FRIEND                                 = 0x069,
-    CMSG_DEL_FRIEND                                 = 0x06A,
     CMSG_SET_CONTACT_NOTES                          = 0x06B,
-    CMSG_ADD_IGNORE                                 = 0x06C,
-    CMSG_DEL_IGNORE                                 = 0x06D,
     CMSG_GROUP_INVITE                               = 0x06E,
     SMSG_GROUP_INVITE                               = 0x06F,
     CMSG_GROUP_CANCEL                               = 0x070,

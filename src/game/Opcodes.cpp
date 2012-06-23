@@ -317,4 +317,14 @@ void InitOpcodeTable()
     OPCODE(SMSG_LEVELUP_INFO,                 STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::HandleServerSide              );
     OPCODE(CMSG_LEARN_TALENT,                 STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleLearnTalentOpcode       );
     OPCODE(CMSG_LEARN_PREVIEW_TALENTS,        STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleLearnPreviewTalents     );
+
+    // Custom
+    OPCODE(CMSG_CONTACT_LIST,                 STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleContactListOpcode       );
+    OPCODE(SMSG_CONTACT_LIST,                 STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::HandleServerSide              );
+
+    OPCODE(CMSG_ADD_FRIEND,                   STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleAddFriendOpcode         );
+    OPCODE(CMSG_DEL_FRIEND,                   STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleDelFriendOpcode         );
+    OPCODE(CMSG_ADD_IGNORE,                   STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleAddIgnoreOpcode         );
+    OPCODE(CMSG_DEL_IGNORE,                   STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleDelIgnoreOpcode         );
+    OPCODE(SMSG_FRIEND_STATUS,                STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::HandleServerSide              );
 };
