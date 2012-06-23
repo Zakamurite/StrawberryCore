@@ -425,6 +425,12 @@ enum Opcodes
     CMSG_ADD_IGNORE,
     CMSG_DEL_IGNORE,
     SMSG_FRIEND_STATUS,
+    CMSG_SET_CONTACT_NOTES,
+
+    CMSG_WHO,
+    SMSG_WHO,
+    CMSG_WHOIS,
+    //SMSG_WHOIS,
     MAX_OPCODE_VALUE
 };
 
@@ -490,11 +496,7 @@ enum Opcodes335a
     CMSG_GAMETIME_SET                               = 0x044,
     CMSG_GAMESPEED_SET                              = 0x046,
     CMSG_SERVERTIME                                 = 0x048,
-    CMSG_WHO                                        = 0x062,
-    SMSG_WHO                                        = 0x063,
-    CMSG_WHOIS                                      = 0x064,
     SMSG_WHOIS                                      = 0x065,
-    CMSG_SET_CONTACT_NOTES                          = 0x06B,
     CMSG_GROUP_INVITE                               = 0x06E,
     SMSG_GROUP_INVITE                               = 0x06F,
     CMSG_GROUP_CANCEL                               = 0x070,

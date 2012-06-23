@@ -1272,13 +1272,14 @@ void WorldSession::HandleWhoisOpcode(WorldPacket& recv_data)
 
     std::string msg = charname + "'s " + "account is " + acc + ", e-mail: " + email + ", last ip: " + lastip;
 
-    WorldPacket data(SMSG_WHOIS, msg.size()+1);
+    // Unknown opcode
+    /*WorldPacket data(SMSG_WHOIS, msg.size()+1);
     data << msg;
-    _player->GetSession()->SendPacket(&data);
+    _player->GetSession()->SendPacket(&data);*/
 
     delete result;
 
-    DEBUG_LOG("Received whois command from player %s for character %s", GetPlayer()->GetName(), charname.c_str());
+    DEBUG_LOG("Received whois command from player %s for character %s, msg: %s", GetPlayer()->GetName(), charname.c_str(), msg.c_str());
 }
 
 void WorldSession::HandleComplainOpcode( WorldPacket & recv_data )

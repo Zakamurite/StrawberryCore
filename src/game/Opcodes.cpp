@@ -327,4 +327,10 @@ void InitOpcodeTable()
     OPCODE(CMSG_ADD_IGNORE,                   STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleAddIgnoreOpcode         );
     OPCODE(CMSG_DEL_IGNORE,                   STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleDelIgnoreOpcode         );
     OPCODE(SMSG_FRIEND_STATUS,                STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::HandleServerSide              );
+    OPCODE(CMSG_SET_CONTACT_NOTES,            STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleSetContactNotesOpcode   );
+
+    OPCODE(CMSG_WHO,                          STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleWhoOpcode               );
+    OPCODE(SMSG_WHO,                          STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::HandleServerSide              );
+    OPCODE(CMSG_WHOIS,                        STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleWhoisOpcode             );
+    //OPCODE(SMSG_WHOIS,                        STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::HandleServerSide              );
 };
