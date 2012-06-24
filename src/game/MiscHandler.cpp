@@ -1644,3 +1644,12 @@ void WorldSession::HandlePlayerViolenceLevel(WorldPacket & recv_data)
     uint8 violenceLevel = 0;
     recv_data >> violenceLevel;
 }
+
+void WorldSession::HandleWorldStateUITimerUpdate(WorldPacket& /*recv_data*/)
+{
+    DEBUG_LOG("WORLD: CMSG_WORLD_STATE_UI_TIMER_UPDATE");
+
+    WorldPacket data(SMSG_WORLD_STATE_UI_TIMER_UPDATE, 4);
+    data << uint32(time(NULL));
+    SendPacket(&data);
+}

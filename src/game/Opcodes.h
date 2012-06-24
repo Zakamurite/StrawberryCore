@@ -417,7 +417,10 @@ enum Opcodes
     SMSG_LEVELUP_INFO,
     CMSG_LEARN_TALENT,
     CMSG_LEARN_PREVIEW_TALENTS,
-<<<<<<< HEAD
+    CMSG_WHO,
+    SMSG_WHO,
+    CMSG_CANCEL_AURA,
+
     // Custom
     CMSG_CONTACT_LIST,
     SMSG_CONTACT_LIST,
@@ -428,15 +431,25 @@ enum Opcodes
     SMSG_FRIEND_STATUS,
     CMSG_SET_CONTACT_NOTES,
 
-    CMSG_WHO,
-    SMSG_WHO,
     CMSG_WHOIS,
+    CMSG_GROUP_INVITE,
+    SMSG_PARTY_COMMAND_RESULT,
+    SMSG_GROUP_LIST,
+    CMSG_GROUP_SET_LEADER,
+    SMSG_GROUP_SET_LEADER,
     //SMSG_WHOIS,
-=======
-    CMSG_WHO,
-    SMSG_WHO,
-    CMSG_CANCEL_AURA,
->>>>>>> 18869b0643427ce8fcf5ede3ce30c44c46ee4aaf
+
+    SMSG_PLAYED_TIME,
+
+    SMSG_WORLD_STATE_UI_TIMER_UPDATE,
+    CMSG_WORLD_STATE_UI_TIMER_UPDATE,
+
+    SMSG_FLIGHT_SPLINE_SYNC,
+
+    SMSG_EMOTE,
+    CMSG_EMOTE,
+    CMSG_TEXT_EMOTE,
+    
     MAX_OPCODE_VALUE
 };
 
@@ -502,12 +515,7 @@ enum Opcodes335a
     CMSG_GAMETIME_SET                               = 0x044,
     CMSG_GAMESPEED_SET                              = 0x046,
     CMSG_SERVERTIME                                 = 0x048,
-<<<<<<< HEAD
-=======
-    CMSG_WHOIS                                      = 0x064,
->>>>>>> 18869b0643427ce8fcf5ede3ce30c44c46ee4aaf
     SMSG_WHOIS                                      = 0x065,
-    CMSG_GROUP_INVITE                               = 0x06E,
     SMSG_GROUP_INVITE                               = 0x06F,
     CMSG_GROUP_CANCEL                               = 0x070,
     SMSG_GROUP_CANCEL                               = 0x071,
@@ -517,14 +525,10 @@ enum Opcodes335a
     CMSG_GROUP_UNINVITE                             = 0x075,
     CMSG_GROUP_UNINVITE_GUID                        = 0x076,
     SMSG_GROUP_UNINVITE                             = 0x077,
-    CMSG_GROUP_SET_LEADER                           = 0x078,
-    SMSG_GROUP_SET_LEADER                           = 0x079,
     CMSG_LOOT_METHOD                                = 0x07A,
     CMSG_GROUP_DISBAND                              = 0x07B,
     SMSG_GROUP_DESTROYED                            = 0x07C,
-    SMSG_GROUP_LIST                                 = 0x07D,
     SMSG_PARTY_MEMBER_STATS                         = 0x07E,
-    SMSG_PARTY_COMMAND_RESULT                       = 0x07F,
     UMSG_UPDATE_GROUP_MEMBERS                       = 0x080,
     CMSG_GUILD_CREATE                               = 0x081,
     CMSG_GUILD_INVITE                               = 0x082,
@@ -639,9 +643,6 @@ enum Opcodes335a
     CMSG_TUTORIAL_CLEAR                             = 0x0FF,
     CMSG_TUTORIAL_RESET                             = 0x100,
     CMSG_STANDSTATECHANGE                           = 0x101,
-    CMSG_EMOTE                                      = 0x102,
-    SMSG_EMOTE                                      = 0x103,
-    CMSG_TEXT_EMOTE                                 = 0x104,
     CMSG_AUTOEQUIP_GROUND_ITEM                      = 0x106,
     CMSG_AUTOSTORE_GROUND_ITEM                      = 0x107,
     CMSG_AUTOSTORE_LOOT_ITEM                        = 0x108,
@@ -777,7 +778,6 @@ enum Opcodes335a
     SMSG_FISH_ESCAPED                               = 0x1C9,
     CMSG_BUG                                        = 0x1CA,
     SMSG_NOTIFICATION                               = 0x1CB,
-    SMSG_PLAYED_TIME                                = 0x1CD,
     SMSG_QUERY_TIME_RESPONSE                        = 0x1CF,
     SMSG_LOG_XPGAIN                                 = 0x1D0,
     SMSG_AURACASTLOG                                = 0x1D1,
@@ -1142,7 +1142,6 @@ enum Opcodes335a
     SMSG_SPLINE_SET_FLIGHT_SPEED                    = 0x385,
     SMSG_SPLINE_SET_FLIGHT_BACK_SPEED               = 0x386,
     CMSG_MAELSTROM_INVALIDATE_CACHE                 = 0x387,
-    SMSG_FLIGHT_SPLINE_SYNC                         = 0x388,
     CMSG_SET_TAXI_BENCHMARK_MODE                    = 0x389,
     SMSG_JOINED_BATTLEGROUND_QUEUE                  = 0x38A,
     CMSG_MOVE_CHNG_TRANSPORT                        = 0x38D,
