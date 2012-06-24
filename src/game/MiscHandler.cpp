@@ -1226,6 +1226,7 @@ void WorldSession::HandleWorldTeleportOpcode(WorldPacket& recv_data)
 
 void WorldSession::HandleWhoisOpcode(WorldPacket& recv_data)
 {
+    // This returns account info on retail, however 
     DEBUG_LOG("Received opcode CMSG_WHOIS");
     std::string charname;
     recv_data >> charname;
@@ -1272,10 +1273,24 @@ void WorldSession::HandleWhoisOpcode(WorldPacket& recv_data)
 
     std::string msg = charname + "'s " + "account is " + acc + ", e-mail: " + email + ", last ip: " + lastip;
 
+    /*
+    int count = 1;
+    uint32 numAddMsg = 0;
     // Unknown opcode
-    /*WorldPacket data(SMSG_WHOIS, msg.size()+1);
+    WorldPacket data(SMSG_WHOIS, 4 + msg.size() + 1 + (4 + 4) * count);
+    data << int32(count);      // < -1: ignored by client, -1: server error, 0: not found, > 0 - count of matched accounts?
     data << msg;
-    _player->GetSession()->SendPacket(&data);*/
+    for (int i = 0; i < count; ++i)
+    {
+        int count2 = 0;
+        data << uint32(0);          // number of additional info lines
+        data << uint32(0);          // some counter in those lines
+        for (int i = 0; i < count2; ++i)
+            data << uint8(0);       // string line
+    }
+
+    _player->GetSession()->SendPacket(&data);
+    */
 
     delete result;
 
