@@ -2844,8 +2844,8 @@ void Player::SendInitialSpells()
 
         data << uint32(itr->first);
 
-        data << uint16(itr->second.itemid);                 // cast item id
-        data << uint32(sEntry->GetCategory());              // spell category
+        data << uint32(itr->second.itemid);                 // cast item id
+        data << uint16(sEntry->GetCategory());              // spell category
 
         // send infinity cooldown in special format
         if(itr->second.end >= infTime)
