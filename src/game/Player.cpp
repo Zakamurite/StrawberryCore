@@ -2813,7 +2813,7 @@ void Player::SendInitialSpells()
     uint16 spellCount = 0;
 
     WorldPacket data(SMSG_INITIAL_SPELLS, (1+2+4*m_spells.size()+2+m_spellCooldowns.size()*(2+2+2+4+4)));
-    data << uint8(0);
+    data << uint8(0);                                       // talent spec
 
     size_t countPos = data.wpos();
     data << uint16(spellCount);                             // spell count placeholder
@@ -2844,8 +2844,8 @@ void Player::SendInitialSpells()
 
         data << uint32(itr->first);
 
-        data << uint32(itr->second.itemid);                 // cast item id
-        data << uint16(sEntry->GetCategory());              // spell category
+        data << uint16(itr->second.itemid);                 // cast item id
+        data << uint32(sEntry->GetCategory());              // spell category
 
         // send infinity cooldown in special format
         if(itr->second.end >= infTime)
@@ -20185,7 +20185,7 @@ void Player::SendInitialPacketsBeforeAddToMap()
 
     data.Initialize(SMSG_INSTANCE_DIFFICULTY, 4+4);
     data << uint32(GetMap()->GetDifficulty());
-    data << uint32(0);
+    data << uint32(0);                                      // player difficulty
     GetSession()->SendPacket(&data);
 
     SendInitialSpells();
