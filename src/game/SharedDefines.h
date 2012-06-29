@@ -913,7 +913,7 @@ enum SpellCastResult
     SPELL_FAILED_PLAY_TIME = 151,
     SPELL_FAILED_REPUTATION = 152,
     SPELL_FAILED_MIN_SKILL = 153,
-    SPELL_FAILED_NOT_IN_ARENA = 154,
+    SPELL_FAILED_NOT_IN_RATED_BG = 154,
     SPELL_FAILED_NOT_ON_SHAPESHIFT = 155,
     SPELL_FAILED_NOT_ON_STEALTHED = 156,
     SPELL_FAILED_NOT_ON_DAMAGE_IMMUNE = 157,
@@ -958,7 +958,11 @@ enum SpellCastResult
     SPELL_FAILED_ONLY_NOT_SWIMMING = 196,
     SPELL_FAILED_BY_NOT_MOVING = 197,
     SPELL_FAILED_IN_COMBAT_RES_LIMIT_REACHED = 198,
-    SPELL_FAILED_UNKNOWN = 199,                             // Value not used
+    SPELL_FAILED_NOT_IN_ARENA = 199,                        // this and higher are not in client
+    SPELL_FAILED_TARGET_NOT_ON_GROUND = 200,
+    SPELL_FAILED_CRASH_CLIENT = 201,                        // expects client have unknown additional data, no data = client crash
+    SPELL_FAILED_NOT_IN_LFG_DUNGEON = 202,
+    SPELL_FAILED_UNKNOWN = 203,
 
     SPELL_CAST_OK = 255                                     // custom value, don't must be send to client
 };
