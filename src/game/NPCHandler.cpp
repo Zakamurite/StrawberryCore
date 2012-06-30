@@ -34,6 +34,7 @@
 #include "Guild.h"
 #include "GuildMgr.h"
 #include "Chat.h"
+#include "PacketWorker.h"
 
 enum StableResultCode
 {
@@ -296,14 +297,12 @@ void WorldSession::HandleTrainerBuySpellOpcode( WorldPacket & recv_data )
 
     _player->ModifyMoney( -int32(nSpellCost) );
 
-    WorldPacket data(SMSG_PLAY_SPELL_VISUAL, 12);           // visual effect on trainer
-    data << ObjectGuid(guid);
-    data << uint32(0xB3);                                   // index from SpellVisualKit.dbc
+    WorldPacket data(SMSG_PLAY_SPELL_VISUAL, 12);                   // visual effect on trainer
+    PacketWorker::BuildSendPlayVisual(&data, guid, 0xB3, false);    // guid, index from SpellVisualKit.dbc
     SendPacket(&data);
 
-    data.Initialize(SMSG_PLAY_SPELL_IMPACT, 12);            // visual effect on player
-    data << _player->GetObjectGuid();
-    data << uint32(0x016A);                                 // index from SpellVisualKit.dbc
+    data.Initialize(SMSG_PLAY_SPELL_VISUAL, 12);                    // visual effect on player
+    PacketWorker::BuildSendPlayVisual(&data, _player->GetObjectGuid(), 0x016A, true);   // guid, index from SpellVisualKit.dbc
     SendPacket(&data);
 
     // learn explicitly or cast explicitly

@@ -25,6 +25,7 @@
 #include "CreatureAI.h"
 #include "Util.h"
 #include "WorldPacket.h"
+#include "PacketWorker.h"
 
 VehicleInfo::VehicleInfo(VehicleEntry const* entry) :
     m_vehicleEntry(entry)
@@ -169,8 +170,7 @@ bool VehicleKit::AddPassenger(Unit *passenger, int8 seatId)
         ((Player*)passenger)->GetCamera().SetView(m_pBase);
 
         WorldPacket data(SMSG_FORCE_MOVE_ROOT, 8+4);
-        data << passenger->GetPackGUID();
-        data << uint32((passenger->m_movementInfo.GetVehicleSeatFlags() & SEAT_FLAG_CAN_CAST) ? 2 : 0);
+        PacketWorker::BuildSetMovementPacket(SMSG_FORCE_MOVE_ROOT, &data, passenger->GetObjectGuid(), (passenger->m_movementInfo.GetVehicleSeatFlags() & SEAT_FLAG_CAN_CAST) ? 2 : 0);
         passenger->SendMessageToSet(&data, true);
     }
 
@@ -224,8 +224,7 @@ bool VehicleKit::AddPassenger(Unit *passenger, int8 seatId)
         if(m_pBase->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISABLE_MOVE))
         {
             WorldPacket data2(SMSG_FORCE_MOVE_ROOT, 8+4);
-            data2 << m_pBase->GetPackGUID();
-            data2 << (uint32)(2);
+            PacketWorker::BuildSetMovementPacket(SMSG_FORCE_MOVE_ROOT, &data2, m_pBase->GetObjectGuid(), 2);
             m_pBase->SendMessageToSet(&data2,false);
         }
     }
@@ -298,8 +297,7 @@ void VehicleKit::RemovePassenger(Unit *passenger)
         ((Player*)passenger)->GetCamera().ResetView();
 
         WorldPacket data(SMSG_FORCE_MOVE_UNROOT, 8+4);
-        data << passenger->GetPackGUID();
-        data << uint32(2);
+        PacketWorker::BuildSetMovementPacket(SMSG_FORCE_MOVE_UNROOT, &data, passenger->GetObjectGuid(), 2);
         passenger->SendMessageToSet(&data, true);
 
         ((Player*)passenger)->ResummonPetTemporaryUnSummonedIfAny();

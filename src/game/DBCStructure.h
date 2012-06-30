@@ -488,17 +488,17 @@ struct AchievementCriteriaEntry
             uint32  additionalRequirement2_value;           // 8        m_fail_asset
         } raw;
     };
-    DBCString name;                                         // 9        m_description_lang
-    uint32  completionFlag;                                 // 10       m_flags
-    uint32  timedCriteriaStartType;                         // 11       m_timer_start_event Only appears with timed achievements, seems to be the type of starting a timed Achievement, only type 1 and some of type 6 need manual starting
+    //uint32  unk1;                                         // 9
+    DBCString name;                                         // 10        m_description_lang
+    uint32  completionFlag;                                 // 11       m_flags
+    uint32  timedCriteriaStartType;                         // 12       m_timer_start_event Only appears with timed achievements, seems to be the type of starting a timed Achievement, only type 1 and some of type 6 need manual starting
                                                             //              1: ByEventId(?) (serverside IDs),    2: ByQuestId,   5: ByCastSpellId(?)
                                                             //              6: BySpellIdTarget(some of these are unknown spells, some not, some maybe spells)
                                                             //              7: ByKillNpcId,  9: ByUseItemId
-    uint32  timedCriteriaMiscId;                            // 12       m_timer_asset_id Alway appears with timed events, used internally to start the achievement, store
-    uint32  timeLimit;                                      // 13       m_timer_time time limit in seconds
-    uint32  showOrder;                                      // 14       m_ui_order  also used in achievement shift-links as index in state bitmask
-    //uint32 unk1;                                          // 15 only one value, still unknown
-    //uint32 unk2;                                          // 16 all zeros
+    uint32  timedCriteriaMiscId;                            // 13       m_timer_asset_id Alway appears with timed events, used internally to start the achievement, store
+    uint32  timeLimit;                                      // 14       m_timer_time time limit in seconds
+    uint32  showOrder;                                      // 15       m_ui_order  also used in achievement shift-links as index in state bitmask
+    //uint32 unk2;                                          // 16 
     //uint32 moreRequirement[3];                            // 17-19
     //uint32 moreRequirementValue[3];                       // 20-22
 
@@ -807,20 +807,21 @@ struct CreatureTypeEntry
     char*   Name;                                           // 2        m_name_lang
 };*/
 
-/*struct CurrencyTypesEntry
+
+struct CurrencyTypesEntry
 {
-    //uint32    ID;                                         // 0        m_ID
-    //uint32    Category;                                   // 1        m_categoryID
-    //char *name;                                           // 2
-    //char *iconName;                                       // 3
-    //uint32                                                // 4
-    //uint32                                                // 5
-    //uint32                                                // 6
-    //uint32                                                // 7
-    //uint32                                                // 8
-    //uint32                                                // 9
+    uint32    ID;                                           // 0        not used
+    //uint32    Category;                                   // 1        may be category
+    //char* name;                                           // 2
+    //char* iconName;                                       // 3
+    //uint32 unk4;                                          // 4        all 0
+    //uint32 unk5;                                          // 5        archaeology-related (?)
+    //uint32 unk6;                                          // 6        archaeology-related (?)
+    uint32 TotalCap;                                        // 7
+    uint32 WeekCap;                                         // 8
+    uint32 Flags;                                           // 9
     //char* description;                                    // 10
-};*/
+};
 
 struct DungeonEncounterEntry
 {

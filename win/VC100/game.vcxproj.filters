@@ -2428,6 +2428,9 @@
     <ClCompile Include="..\..\src\game\BattlefieldMgr.cpp">
       <Filter>World/Handlers</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\game\PacketWorker.cpp">
+      <Filter>World/Handlers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\game\AccountMgr.h">
@@ -3154,6 +3157,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\game\Scripts\kalimdor\caverns_of_time\dragon_soul\instance_dragon_soul.h">
       <Filter>Scripts\kalimdor\caverns_of_time\dragon_soul</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\game\PacketWorker.h">
+      <Filter>World/Handlers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

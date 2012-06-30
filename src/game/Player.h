@@ -2470,6 +2470,11 @@ class Player : public Unit
         uint32 m_honorPoints;
         uint32 m_arenaPoints;
 
+        /*********************************************************/
+        /***                CURRENCY SYSTEM                    ***/
+        /*********************************************************/
+        void SendCurrencies() const;
+
         void outDebugStatsValues() const;
         ObjectGuid m_lootGuid;
 

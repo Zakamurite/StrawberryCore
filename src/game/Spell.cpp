@@ -46,6 +46,7 @@
 #include "Util.h"
 #include "Vehicle.h"
 #include "Chat.h"
+#include "PacketWorker.h"
 
 extern pEffect SpellEffects[TOTAL_SPELL_EFFECTS];
 
@@ -4367,8 +4368,7 @@ void Spell::SendPlaySpellVisual(uint32 SpellID)
         return;
 
     WorldPacket data(SMSG_PLAY_SPELL_VISUAL, 8 + 4);
-    data << m_caster->GetObjectGuid();
-    data << uint32(SpellID);                                // spell visual id?
+    PacketWorker::BuildSendPlayVisual(&data, m_caster->GetObjectGuid(), SpellID, false);    // guid, index from SpellVisualKit.dbc
     ((Player*)m_caster)->GetSession()->SendPacket(&data);
 }
 

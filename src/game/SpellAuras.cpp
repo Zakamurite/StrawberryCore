@@ -45,6 +45,7 @@
 #include "GridNotifiersImpl.h"
 #include "Vehicle.h"
 #include "CellImpl.h"
+#include "PacketWorker.h"
 
 #define NULL_AURA_SLOT 0xFF
 
@@ -4355,8 +4356,8 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
         }
 
         WorldPacket data(SMSG_FORCE_MOVE_ROOT, 8);
-        data << target->GetPackGUID();
-        data << uint32(0);
+        PacketWorker::BuildSetMovementPacket(SMSG_FORCE_MOVE_ROOT, &data, target->GetObjectGuid(), 0);
+
         target->SendMessageToSet(&data, true);
 
         // Summon the Naj'entus Spine GameObject on target if spell is Impaling Spine
@@ -4413,8 +4414,7 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
                 target->SetTargetGuid(target->getVictim()->GetObjectGuid());
 
             WorldPacket data(SMSG_FORCE_MOVE_UNROOT, 8+4);
-            data << target->GetPackGUID();
-            data << uint32(0);
+            PacketWorker::BuildSetMovementPacket(SMSG_FORCE_MOVE_UNROOT, &data, target->GetObjectGuid(), 0);
             target->SendMessageToSet(&data, true);
         }
 
@@ -4649,8 +4649,7 @@ void Aura::HandleAuraModRoot(bool apply, bool Real)
             if(!target->hasUnitState(UNIT_STAT_ON_VEHICLE))
             {
                 WorldPacket data(SMSG_FORCE_MOVE_ROOT, 10);
-                data << target->GetPackGUID();
-                data << uint32(2);
+                PacketWorker::BuildSetMovementPacket(SMSG_FORCE_MOVE_ROOT, &data, target->GetObjectGuid(), 2);
                 target->SendMessageToSet(&data, true);
             }
 
@@ -4699,8 +4698,7 @@ void Aura::HandleAuraModRoot(bool apply, bool Real)
             if(target->GetTypeId() == TYPEID_PLAYER)
             {
                 WorldPacket data(SMSG_FORCE_MOVE_UNROOT, 10);
-                data << target->GetPackGUID();
-                data << (uint32)2;
+                PacketWorker::BuildSetMovementPacket(SMSG_FORCE_MOVE_UNROOT, &data, target->GetObjectGuid(), 2);
                 target->SendMessageToSet(&data, true);
             }
         }

@@ -41,6 +41,7 @@
 #include "Pet.h"
 #include "SocialMgr.h"
 #include "DBCEnums.h"
+#include "PacketWorker.h"
 
 void WorldSession::HandleRepopRequestOpcode( WorldPacket & recv_data )
 {
@@ -297,8 +298,7 @@ void WorldSession::HandleLogoutRequestOpcode( WorldPacket & /*recv_data*/ )
             GetPlayer()->SetStandState(UNIT_STAND_STATE_SIT);
 
         WorldPacket data( SMSG_FORCE_MOVE_ROOT, (8+4) );    // guess size
-        data << GetPlayer()->GetPackGUID();
-        data << (uint32)2;
+        PacketWorker::BuildSetMovementPacket(SMSG_FORCE_MOVE_ROOT, &data, GetPlayer()->GetObjectGuid(), 2);
         SendPacket( &data );
         GetPlayer()->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
     }
@@ -317,7 +317,7 @@ void WorldSession::HandlePlayerLogoutOpcode( WorldPacket & /*recv_data*/ )
 
 void WorldSession::HandleLogoutCancelOpcode( WorldPacket & /*recv_data*/ )
 {
-    DEBUG_LOG( "WORLD: Recvd CMSG_LOGOUT_CANCEL Message" );
+    DEBUG_LOG( "WORLD: Recvd CMSG_LOGOUT_CANCEL Message, player %s", GetPlayer()->GetGuidStr().c_str() );
 
     LogoutRequest(0);
 
@@ -328,9 +328,8 @@ void WorldSession::HandleLogoutCancelOpcode( WorldPacket & /*recv_data*/ )
     if(GetPlayer()->CanFreeMove())
     {
         //!we can move again
-        data.Initialize( SMSG_FORCE_MOVE_UNROOT, 8 );       // guess size
-        data << GetPlayer()->GetPackGUID();
-        data << uint32(0);
+        data.Initialize( SMSG_FORCE_MOVE_UNROOT, 8+4 );       // guess size
+        PacketWorker::BuildSetMovementPacket(SMSG_FORCE_MOVE_UNROOT, &data, GetPlayer()->GetObjectGuid(), 2);
         SendPacket( &data );
 
         //! Stand Up
@@ -1055,48 +1054,18 @@ void WorldSession::HandleMoveUnRootAck(WorldPacket& recv_data)
 {
     // no used
     recv_data.rpos(recv_data.wpos());                       // prevent warnings spam
-/*
-    ObjectGuid guid;
-    recv_data >> guid;
-
-    // now can skip not our packet
-    if(_player->GetGUID() != guid)
-    {
-        recv_data.rpos(recv_data.wpos());                   // prevent warnings spam
-        return;
-    }
-
-    DEBUG_LOG( "WORLD: CMSG_FORCE_MOVE_UNROOT_ACK" );
-
-    recv_data.read_skip<uint32>();                          // unk
-
-    MovementInfo movementInfo;
-    ReadMovementInfo(recv_data, &movementInfo);
-*/
+    /*
+        bitsream packet
+    */
 }
 
 void WorldSession::HandleMoveRootAck(WorldPacket& recv_data)
 {
     // no used
     recv_data.rpos(recv_data.wpos());                       // prevent warnings spam
-/*
-    ObjectGuid guid;
-    recv_data >> guid;
-
-    // now can skip not our packet
-    if(_player->GetObjectGuid() != guid)
-    {
-        recv_data.rpos(recv_data.wpos());                   // prevent warnings spam
-        return;
-    }
-
-    DEBUG_LOG( "WORLD: CMSG_FORCE_MOVE_ROOT_ACK" );
-
-    recv_data.read_skip<uint32>();                          // unk
-
-    MovementInfo movementInfo;
-    ReadMovementInfo(recv_data, &movementInfo);
-*/
+    /*
+        bitsream packet
+    */
 }
 
 void WorldSession::HandleSetActionBarTogglesOpcode(WorldPacket& recv_data)
@@ -1273,24 +1242,9 @@ void WorldSession::HandleWhoisOpcode(WorldPacket& recv_data)
 
     std::string msg = charname + "'s " + "account is " + acc + ", e-mail: " + email + ", last ip: " + lastip;
 
-    /*
-    int count = 1;
-    uint32 numAddMsg = 0;
-    // Unknown opcode
-    WorldPacket data(SMSG_WHOIS, 4 + msg.size() + 1 + (4 + 4) * count);
-    data << int32(count);      // < -1: ignored by client, -1: server error, 0: not found, > 0 - count of matched accounts?
+    WorldPacket data(SMSG_WHOIS, msg.size() + 1);
     data << msg;
-    for (int i = 0; i < count; ++i)
-    {
-        int count2 = 0;
-        data << uint32(0);          // number of additional info lines
-        data << uint32(0);          // some counter in those lines
-        for (int i = 0; i < count2; ++i)
-            data << uint8(0);       // string line
-    }
-
     _player->GetSession()->SendPacket(&data);
-    */
 
     delete result;
 
@@ -1667,4 +1621,9 @@ void WorldSession::HandleWorldStateUITimerUpdate(WorldPacket& /*recv_data*/)
     WorldPacket data(SMSG_WORLD_STATE_UI_TIMER_UPDATE, 4);
     data << uint32(time(NULL));
     SendPacket(&data);
+}
+
+void WorldSession::HandleLogDisconnect(WorldPacket& recv_data)
+{
+    recv_data.read_skip<uint32>();    
 }

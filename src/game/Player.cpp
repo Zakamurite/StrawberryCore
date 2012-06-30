@@ -63,6 +63,7 @@
 #include "Mail.h"
 #include "SpellAuras.h"
 #include "ByteBuffer.h"
+#include "PacketWorker.h"
 
 #include <cmath>
 
@@ -2453,7 +2454,7 @@ void Player::RemoveFromGroup(Group* group, ObjectGuid guid)
 
 void Player::SendLogXPGain(uint32 GivenXP, Unit* victim, uint32 RestXP)
 {
-    WorldPacket data(SMSG_LOG_XPGAIN, 21);
+    WorldPacket data(SMSG_LOG_XP_GAIN, 21);
     data << (victim ? victim->GetObjectGuid() : ObjectGuid());// guid
     data << uint32(GivenXP+RestXP);                         // given experience
     data << uint8(victim ? 0 : 1);                          // 00-kill_xp type, 01-non_kill_xp type
@@ -2544,8 +2545,6 @@ void Player::GiveLevel(uint32 level)
     data << uint32(0);
     data << uint32(0);
     data << uint32(0);
-    /*data << uint32(0);
-    data << uint32(0);*/
     // end for
     for(int i = STAT_STRENGTH; i < MAX_STATS; ++i)          // Stats loop (0-4)
         data << uint32(int32(info.stats[i]) - GetCreateStat(Stats(i)));
@@ -4418,8 +4417,20 @@ void Player::SetMovement(PlayerMovementType pType)
     WorldPacket data;
     switch(pType)
     {
-        case MOVE_ROOT:       data.Initialize(SMSG_FORCE_MOVE_ROOT,   GetPackGUID().size()+4); break;
-        case MOVE_UNROOT:     data.Initialize(SMSG_FORCE_MOVE_UNROOT, GetPackGUID().size()+4); break;
+        case MOVE_ROOT:
+        {
+            data.Initialize(SMSG_FORCE_MOVE_ROOT, GetPackGUID().size()+4);
+            PacketWorker::BuildSetMovementPacket(SMSG_FORCE_MOVE_ROOT, &data, GetObjectGuid(), 0);
+            GetSession()->SendPacket(&data);
+            return;
+        }
+        case MOVE_UNROOT:
+        {
+            data.Initialize(SMSG_FORCE_MOVE_UNROOT, GetPackGUID().size()+4);
+            PacketWorker::BuildSetMovementPacket(SMSG_FORCE_MOVE_UNROOT, &data, GetObjectGuid(), 0);
+            GetSession()->SendPacket(&data);
+            return;
+        }
         case MOVE_WATER_WALK: data.Initialize(SMSG_MOVE_WATER_WALK,   GetPackGUID().size()+4); break;
         case MOVE_LAND_WALK:  data.Initialize(SMSG_MOVE_LAND_WALK,    GetPackGUID().size()+4); break;
         default:
@@ -20220,6 +20231,8 @@ void Player::SendInitialPacketsBeforeAddToMap()
     if (IsFreeFlying() || IsTaxiFlying())
         m_movementInfo.AddMovementFlag(MOVEFLAG_FLYING);
 
+    SendCurrencies();
+
     SetMover(this);
 }
 
@@ -20259,16 +20272,14 @@ void Player::SendInitialPacketsAfterAddToMap()
     if(HasAuraType(SPELL_AURA_MOD_ROOT))
     {
         WorldPacket data2(SMSG_FORCE_MOVE_ROOT, 10);
-        data2 << GetPackGUID();
-        data2 << (uint32)2;
+        PacketWorker::BuildSetMovementPacket(SMSG_FORCE_MOVE_ROOT, &data2, GetObjectGuid(), 2);
         SendMessageToSet(&data2,true);
     }
 
     if(GetVehicle())
     {
         WorldPacket data3(SMSG_FORCE_MOVE_ROOT, 10);
-        data3 << GetPackGUID();
-        data3 << uint32((m_movementInfo.GetVehicleSeatFlags() & SEAT_FLAG_CAN_CAST) ? 2 : 0);
+        PacketWorker::BuildSetMovementPacket(SMSG_FORCE_MOVE_ROOT, &data3, GetObjectGuid(), (m_movementInfo.GetVehicleSeatFlags() & SEAT_FLAG_CAN_CAST) ? 2 : 0);
         SendMessageToSet(&data3,true);
     }
 
@@ -23220,4 +23231,9 @@ void Player::_fillGearScoreData(Item* item, GearScoreVec* gearScore, uint32& two
 PlayerTalentHolder::PlayerTalentHolder()
 {
 
+}
+
+void Player::SendCurrencies() const
+{
+    //WorldPacket data(SMSG_SETUP_CURRENCY, ...);
 }

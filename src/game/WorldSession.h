@@ -881,6 +881,8 @@ class WorldSession
 
         void HandleWorldStateUITimerUpdate(WorldPacket& recv_data);
 
+        void HandleLogDisconnect(WorldPacket& recv_data);
+
     private:
         // private trade methods
         void moveItems(Item* myItems[], Item* hisItems[]);

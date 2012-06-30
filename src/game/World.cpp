@@ -253,13 +253,14 @@ World::AddSession_ (WorldSession* s)
 
     WorldPacket packet(SMSG_AUTH_RESPONSE, 16);
 
-    packet.WriteBit(false);
-    packet.WriteBit(true);
+    packet.WriteBit(false);                                 // queued - false
+    packet.WriteBit(true);                                  // has account info - true
 
-    packet << uint32(0);                                    // Unknown - 4.3.2
-    packet << uint8(s->Expansion());                        // 0 - normal, 1 - TBC, 2 - WotLK, 3 - CT. must be set in database manually for each account
+    // Account info
+    packet << uint32(0);                                    // Billing time remaining
+    packet << uint8(s->Expansion());                        // Account expansion, 0 - normal, 1 - TBC, 2 - WotLK, 3 - CT. must be set in database manually for each account
     packet << uint32(0);                                    // BillingTimeRemaining
-    packet << uint8(s->Expansion());                        // 0 - normal, 1 - TBC, 2 - WotLK, 3 - CT. Must be set in database manually for each account.
+    packet << uint8(s->Expansion());                        // Character expansion, 0 - normal, 1 - TBC, 2 - WotLK, 3 - CT. Must be set in database manually for each account.
     packet << uint32(0);                                    // BillingTimeRested
     packet << uint8(0);                                     // BillingPlanFlags
     packet << uint8(AUTH_OK);

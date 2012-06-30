@@ -231,7 +231,7 @@ enum AchievementCriteriaTypes
     // 0..135 => 136 criteria types total
 };
 
-#define ACHIEVEMENT_CRITERIA_TYPE_TOTAL 137
+#define ACHIEVEMENT_CRITERIA_TYPE_TOTAL 151
 
 enum AchievementCriteriaMoreReqType
 {

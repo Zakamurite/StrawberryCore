@@ -176,7 +176,7 @@ void WorldSession::SendPacket(WorldPacket const* packet)
     #endif                                                  // !STRAWBERRY_DEBUG
 
     if (strcmp(opcodeTable[packet->GetOpcode()].name, "UNKNOWN") == 0)
-        sLog.outError("Sent unknown opcode %X to account %u player %s", packet->GetOpcode(), GetAccountId(), GetPlayer() ? GetPlayer()->GetGuidStr().c_str() : "UNKNOWN");
+        sLog.outError("Sent unknown opcode 0x%X to account %u player %s", packet->GetOpcode(), GetAccountId(), GetPlayer() ? GetPlayer()->GetGuidStr().c_str() : "UNKNOWN");
 
     if (m_Socket->SendPacket (*packet) == -1)
         m_Socket->CloseSocket ();
@@ -585,7 +585,7 @@ void WorldSession::SendSetPhaseShift(uint32 phaseMask)
     uint32 phaseFlags = 0;
     uint32 currentMap = _player->GetMapId();
 
-    for (uint32 i = 0; i < sPhaseStore.GetNumRows(); i++)
+    for (uint32 i = 0; i < sPhaseStore.GetNumRows(); ++i)
     {
         if (PhaseEntry const* phase = sPhaseStore.LookupEntry(i))
         {
