@@ -30,7 +30,8 @@ enum eObjectFields
     OBJECT_FIELD_SCALE_X                             = 0x6,
     OBJECT_FIELD_PADDING                             = 0x7,
     OBJECT_END                                       = 0x8
-};
+};
+
 enum eUnitFields
 {
     UNIT_FIELD_CHARM                                 = OBJECT_END + 0x0,
@@ -123,7 +124,8 @@ enum eUnitFields
     UNIT_FIELD_MAXITEMLEVEL                          = OBJECT_END + 0x88,
     UNIT_FIELD_PADDING                               = OBJECT_END + 0x89,
     UNIT_END                                         = OBJECT_END + 0x8A
-};
+};
+
 enum eItemFields
 {
     ITEM_FIELD_OWNER                                 = OBJECT_END + 0x0,
@@ -170,7 +172,8 @@ enum eItemFields
     ITEM_FIELD_MAXDURABILITY                         = OBJECT_END + 0x40,
     ITEM_FIELD_CREATE_PLAYED_TIME                    = OBJECT_END + 0x41,
     ITEM_END                                         = OBJECT_END + 0x42
-};
+};
+
 enum ePlayerFields
 {
     PLAYER_DUEL_ARBITER                              = UNIT_END + 0x0,
@@ -502,14 +505,16 @@ enum ePlayerFields
     PLAYER_FIELD_MOD_PET_HASTE                       = UNIT_END + 0x4D4,
     PLAYER_FIELD_MOD_HASTE_REGEN                     = UNIT_END + 0x4D5,
     PLAYER_END                                       = UNIT_END + 0x4D6
-};
+};
+
 enum eContainerFields
 {
     CONTAINER_FIELD_NUM_SLOTS                        = ITEM_END + 0x0,
     CONTAINER_ALIGN_PAD                              = ITEM_END + 0x1,
     CONTAINER_FIELD_SLOT_1                           = ITEM_END + 0x2,
     CONTAINER_END                                    = ITEM_END + 0x4A
-};
+};
+
 enum eGameObjectFields
 {
     OBJECT_FIELD_CREATED_BY                          = OBJECT_END + 0x0,
@@ -521,7 +526,8 @@ enum eGameObjectFields
     GAMEOBJECT_LEVEL                                 = OBJECT_END + 0xA,
     GAMEOBJECT_BYTES_1                               = OBJECT_END + 0xB,
     GAMEOBJECT_END                                   = OBJECT_END + 0xC
-};
+};
+
 enum eDynamicObjectFields
 {
     DYNAMICOBJECT_CASTER                             = OBJECT_END + 0x0,
@@ -530,7 +536,8 @@ enum eDynamicObjectFields
     DYNAMICOBJECT_RADIUS                             = OBJECT_END + 0x4,
     DYNAMICOBJECT_CASTTIME                           = OBJECT_END + 0x5,
     DYNAMICOBJECT_END                                = OBJECT_END + 0x6
-};
+};
+
 enum eCorpseFields
 {
     CORPSE_FIELD_OWNER                               = OBJECT_END + 0x0,
@@ -542,7 +549,8 @@ enum eCorpseFields
     CORPSE_FIELD_FLAGS                               = OBJECT_END + 0x1A,
     CORPSE_FIELD_DYNAMIC_FLAGS                       = OBJECT_END + 0x1B,
     CORPSE_END                                       = OBJECT_END + 0x1C
-};
+};
+
 
 #define PLAYER_END_NOT_SELF PLAYER_FIELD_INV_SLOT_HEAD
 #endif
