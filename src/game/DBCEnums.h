@@ -363,6 +363,14 @@ enum AbilitySkillFlags
     ABILITY_SKILL_NONTRAINABLE = 0x100
 };
 
+enum CurrencyTypes
+{
+    CURRENCY_TYPE_CONQUEST_POINTS   = 390,
+    CURRENCY_TYPE_HONOR_POINTS      = 392,
+    CURRENCY_TYPE_JUSTICE_POINTS    = 395,
+    CURRENCY_TYPE_VALOR_POINTS      = 396,
+};
+
 enum ItemEnchantmentType
 {
     ITEM_ENCHANTMENT_TYPE_NONE             = 0,

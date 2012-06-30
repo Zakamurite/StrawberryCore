@@ -3983,6 +3983,7 @@ void Player::InitVisibleBits()
     updateVisualBits.SetBit(PLAYER_FLAGS);
     //updateVisualBits.SetBit(PLAYER_GUILDID);
     updateVisualBits.SetBit(PLAYER_GUILDRANK);
+    updateVisualBits.SetBit(PLAYER_GUILDLEVEL);
     updateVisualBits.SetBit(PLAYER_BYTES);
     updateVisualBits.SetBit(PLAYER_BYTES_2);
     updateVisualBits.SetBit(PLAYER_BYTES_3);
@@ -11482,6 +11483,23 @@ void Player::RemoveItem( uint8 bag, uint8 slot, bool update )
 
         if (IsInWorld() && update)
             pItem->SendCreateUpdateToPlayer( this );
+    }
+}
+
+void Player::SetInGuild (uint32 GuildId)
+{
+    m_guildId = GuildId;
+    if (GuildId != 0)
+    {
+        WorldPacket data7(SMSG_GUILD_INVITE);
+        data7 << uint64(GuildId);
+        SetUInt64Value(OBJECT_FIELD_DATA, uint64(GuildId));
+        SetUInt32Value(OBJECT_FIELD_TYPE, GetUInt32Value(OBJECT_FIELD_TYPE) | 0x00010000);
+    }
+    else
+    {
+        SetUInt64Value(OBJECT_FIELD_DATA, 0);
+        SetUInt32Value(OBJECT_FIELD_TYPE, GetUInt32Value(OBJECT_FIELD_TYPE) & ~0x00010000);
     }
 }
 

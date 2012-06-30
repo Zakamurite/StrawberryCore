@@ -317,7 +317,7 @@ void WorldSession::HandlePlayerLogoutOpcode( WorldPacket & /*recv_data*/ )
 
 void WorldSession::HandleLogoutCancelOpcode( WorldPacket & /*recv_data*/ )
 {
-    DEBUG_LOG( "WORLD: Recvd CMSG_LOGOUT_CANCEL Message, player %s", GetPlayer()->GetGuidStr().c_str() );
+    DEBUG_LOG( "WORLD: Recvd CMSG_LOGOUT_CANCEL Message, player %s");
 
     LogoutRequest(0);
 
@@ -442,7 +442,6 @@ void WorldSession::HandleAddFriendOpcode( WorldPacket & recv_data )
     std::string friendNote;
 
     recv_data >> friendName;
-
     recv_data >> friendNote;
 
     if(!normalizePlayerName(friendName))
@@ -450,8 +449,7 @@ void WorldSession::HandleAddFriendOpcode( WorldPacket & recv_data )
 
     CharacterDatabase.escape_string(friendName);            // prevent SQL injection - normal name don't must changed by this call
 
-    DEBUG_LOG( "WORLD: %s asked to add friend : '%s'",
-        GetPlayer()->GetName(), friendName.c_str() );
+    DEBUG_LOG( "WORLD: %s asked to add friend : '%s'", GetPlayer()->GetName(), friendName.c_str() );
 
     CharacterDatabase.AsyncPQuery(&WorldSession::HandleAddFriendOpcodeCallBack, GetAccountId(), friendNote, "SELECT guid, race FROM characters WHERE name = '%s'", friendName.c_str());
 }
@@ -1195,7 +1193,6 @@ void WorldSession::HandleWorldTeleportOpcode(WorldPacket& recv_data)
 
 void WorldSession::HandleWhoisOpcode(WorldPacket& recv_data)
 {
-    // This returns account info on retail, however 
     DEBUG_LOG("Received opcode CMSG_WHOIS");
     std::string charname;
     recv_data >> charname;
@@ -1242,13 +1239,13 @@ void WorldSession::HandleWhoisOpcode(WorldPacket& recv_data)
 
     std::string msg = charname + "'s " + "account is " + acc + ", e-mail: " + email + ", last ip: " + lastip;
 
-    WorldPacket data(SMSG_WHOIS, msg.size() + 1);
+    WorldPacket data(SMSG_WHOIS, msg.size()+1);
     data << msg;
     _player->GetSession()->SendPacket(&data);
 
     delete result;
 
-    DEBUG_LOG("Received whois command from player %s for character %s, msg: %s", GetPlayer()->GetName(), charname.c_str(), msg.c_str());
+    DEBUG_LOG("Received whois command from player %s for character %s", GetPlayer()->GetName(), charname.c_str());
 }
 
 void WorldSession::HandleComplainOpcode( WorldPacket & recv_data )
@@ -1617,7 +1614,6 @@ void WorldSession::HandlePlayerViolenceLevel(WorldPacket & recv_data)
 void WorldSession::HandleWorldStateUITimerUpdate(WorldPacket& /*recv_data*/)
 {
     DEBUG_LOG("WORLD: CMSG_WORLD_STATE_UI_TIMER_UPDATE");
-
     WorldPacket data(SMSG_WORLD_STATE_UI_TIMER_UPDATE, 4);
     data << uint32(time(NULL));
     SendPacket(&data);
@@ -1625,5 +1621,5 @@ void WorldSession::HandleWorldStateUITimerUpdate(WorldPacket& /*recv_data*/)
 
 void WorldSession::HandleLogDisconnect(WorldPacket& recv_data)
 {
-    recv_data.read_skip<uint32>();    
+    recv_data.read_skip<uint32>();
 }
