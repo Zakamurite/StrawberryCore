@@ -41,6 +41,7 @@
 #include "CellImpl.h"
 #include "ObjectMgr.h"
 #include "DB2Stores.h"
+#include "DBCStores.h"
 #include "ObjectAccessor.h"
 #include "CreatureAI.h"
 #include "Formulas.h"
@@ -81,6 +82,8 @@
 #define SKILL_TEMP_BONUS(x)    int16(PAIR32_LOPART(x))
 #define SKILL_PERM_BONUS(x)    int16(PAIR32_HIPART(x))
 #define MAKE_SKILL_BONUS(t, p) MAKE_PAIR32(t,p)
+
+#define PLAYER_DEFAULT_CONQUEST_POINTS_WEEK_CAP 1350
 
 enum CharacterFlags
 {
@@ -559,10 +562,10 @@ Player::Player (WorldSession *session): Unit(), m_mover(this), m_camera(this), m
     m_armorPenetrationPct = 0.0f;
     m_spellPenetrationItemMod = 0;
 
-    // Honor System
-    m_lastHonorUpdateTime = time(NULL);
-    m_honorPoints = 0;
-    m_arenaPoints = 0;
+    m_maxWeekRating[CP_SOURCE_ARENA] = 0;
+    m_maxWeekRating[CP_SOURCE_RATED_BG] = 0;
+    m_conquestPointsWeekCap[CP_SOURCE_ARENA] = PLAYER_DEFAULT_CONQUEST_POINTS_WEEK_CAP;
+    m_conquestPointsWeekCap[CP_SOURCE_RATED_BG] = PLAYER_DEFAULT_CONQUEST_POINTS_WEEK_CAP;
 
     // Player summoning
     m_summon_expire = 0;
@@ -731,8 +734,8 @@ bool Player::Create( uint32 guidlow, const std::string& name, uint8 race, uint8 
     InitRunes();
 
     SetUInt32Value(PLAYER_FIELD_COINAGE, sWorld.getConfig(CONFIG_UINT32_START_PLAYER_MONEY));
-    SetHonorPoints(sWorld.getConfig(CONFIG_UINT32_START_HONOR_POINTS));
-    SetArenaPoints(sWorld.getConfig(CONFIG_UINT32_START_ARENA_POINTS));
+    SetCurrency(CURRENCY_TYPE_HONOR_POINTS, sWorld.getConfig(CONFIG_UINT32_START_HONOR_POINTS));
+    SetCurrency(CURRENCY_TYPE_CONQUEST_POINTS, sWorld.getConfig(CONFIG_UINT32_START_ARENA_POINTS));
 
     // Played time
     m_Last_tick = time(NULL);
@@ -4359,6 +4362,8 @@ void Player::DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRe
             CharacterDatabase.PExecute("DELETE FROM character_equipmentsets WHERE guid = '%u'", lowguid);
             CharacterDatabase.PExecute("DELETE FROM guild_eventlog WHERE PlayerGuid1 = '%u' OR PlayerGuid2 = '%u'", lowguid, lowguid);
             CharacterDatabase.PExecute("DELETE FROM guild_bank_eventlog WHERE PlayerGuid = '%u'", lowguid);
+            CharacterDatabase.PExecute("DELETE FROM character_cp_weekcap WHERE guid = '%u'", lowguid);
+            CharacterDatabase.PExecute("DELETE FROM character_currency WHERE guid = '%u'", lowguid);
             CharacterDatabase.CommitTransaction();
             break;
         }
@@ -6447,43 +6452,6 @@ void Player::RewardReputation(Quest const *pQuest)
     // TODO: implement reputation spillover
 }
 
-void Player::UpdateArenaFields(void)
-{
-    /* arena calcs go here */
-}
-
-void Player::UpdateHonorFields()
-{
-    /// called when rewarding honor and at each save
-    time_t now = time(NULL);
-    time_t today = (time(NULL) / DAY) * DAY;
-
-    if(m_lastHonorUpdateTime < today)
-    {
-        time_t yesterday = today - DAY;
-
-        uint16 kills_today = PAIR32_LOPART(GetUInt32Value(PLAYER_FIELD_KILLS));
-
-        // update yesterday's contribution
-        if(m_lastHonorUpdateTime >= yesterday )
-        {
-            //SetUInt32Value(PLAYER_FIELD_YESTERDAY_CONTRIBUTION, GetUInt32Value(PLAYER_FIELD_TODAY_CONTRIBUTION));
-
-            // this is the first update today, reset today's contribution
-            //SetUInt32Value(PLAYER_FIELD_TODAY_CONTRIBUTION, 0);
-            SetUInt32Value(PLAYER_FIELD_KILLS, MAKE_PAIR32(0,kills_today));
-        }
-        else
-        {
-            // no honor/kills yesterday or today, reset
-            //SetUInt32Value(PLAYER_FIELD_YESTERDAY_CONTRIBUTION, 0);
-            SetUInt32Value(PLAYER_FIELD_KILLS, 0);
-        }
-    }
-
-    m_lastHonorUpdateTime = now;
-}
-
 ///Calculate the amount of honor gained based on the victim
 ///and the size of the group for which the honor is divided
 ///An exact honor value can also be given (overriding the calcs)
@@ -6507,9 +6475,6 @@ bool Player::RewardHonor(Unit *uVictim, uint32 groupsize, float honor)
 
     ObjectGuid victim_guid;
     uint32 victim_rank = 0;
-
-    // need call before fields update to have chance move yesterday data to appropriate fields before today data change.
-    UpdateHonorFields();
 
     if (honor <= 0)
     {
@@ -6608,50 +6573,9 @@ bool Player::RewardHonor(Unit *uVictim, uint32 groupsize, float honor)
     GetSession()->SendPacket(&data);
 
     // add honor points
-    ModifyHonorPoints(int32(honor));
+    ModifyCurrency(CURRENCY_TYPE_HONOR_POINTS, int32(honor));
 
-    // FIXME 4x ApplyModUInt32Value(PLAYER_FIELD_TODAY_CONTRIBUTION, uint32(honor), true);
     return true;
-}
-
-void Player::SetHonorPoints(uint32 value)
-{
-    if (value > sWorld.getConfig(CONFIG_UINT32_MAX_HONOR_POINTS))
-        value = sWorld.getConfig(CONFIG_UINT32_MAX_HONOR_POINTS);
-
-    // FIXME 4x SetUInt32Value(PLAYER_FIELD_HONOR_CURRENCY, value);
-    // must be recalculated to new honor points items and removed
-    m_honorPoints = value;
-}
-
-void Player::SetArenaPoints(uint32 value)
-{
-    if (value > sWorld.getConfig(CONFIG_UINT32_MAX_ARENA_POINTS))
-        value = sWorld.getConfig(CONFIG_UINT32_MAX_ARENA_POINTS);
-
-    // FIXME 4x SetUInt32Value(PLAYER_FIELD_ARENA_CURRENCY, value);
-    // must be recalculated to new honor points items and removed
-    m_arenaPoints = value;
-}
-
-void Player::ModifyHonorPoints(int32 value)
-{
-    int32 newValue = (int32)GetHonorPoints() + value;
-
-    if (newValue < 0)
-        newValue = 0;
-
-    SetHonorPoints(newValue);
-}
-
-void Player::ModifyArenaPoints(int32 value)
-{
-    int32 newValue = (int32)GetArenaPoints() + value;
-
-    if (newValue < 0)
-        newValue = 0;
-
-    SetArenaPoints(newValue);
 }
 
 uint32 Player::GetGuildIdFromDB(ObjectGuid guid)
@@ -8607,10 +8531,10 @@ void Player::SendInitWorldStates(uint32 zoneid, uint32 areaid)
     FillInitialWorldState(data, count, 0x8d5, 0x0);         // 2261 4
     FillInitialWorldState(data, count, 0x8d4, 0x0);         // 2260 5
     FillInitialWorldState(data, count, 0x8d3, 0x0);         // 2259 6
-                                                            // 3191 7 Current arena season
-    FillInitialWorldState(data, count, 0xC77, sWorld.getConfig(CONFIG_UINT32_ARENA_SEASON_ID));
-                                                            // 3901 8 Previous arena season
-    FillInitialWorldState(data, count, 0xF3D, sWorld.getConfig(CONFIG_UINT32_ARENA_SEASON_PREVIOUS_ID));
+                                                            // 3191 7 Arena season in progress
+    FillInitialWorldState(data, count, 0xC77, sWorld.getConfig(CONFIG_BOOL_ARENA_SEASON_IN_PROGRESS));
+                                                            // 3901 8 Arena season
+    FillInitialWorldState(data, count, 0xF3D, sWorld.getConfig(CONFIG_UINT32_ARENA_SEASON_ID));
     FillInitialWorldState(data, count, 0xED9, 1);           // 3801 9  0 - Battle for Wintergrasp in progress, 1 - otherwise
                                                             // 4354 10 Time when next Battle for Wintergrasp starts
     FillInitialWorldState(data, count, 0x1102, uint32(time(NULL) + 9000));
@@ -15393,9 +15317,9 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder *holder )
     //"position_x, position_y, position_z, map, orientation, taximask, cinematic, totaltime, leveltime, rest_bonus, logout_time, is_logout_resting, resettalents_cost,"
     // 25                 26       27       28       29       30         31           32            33        34    35      36                 37         38
     //"resettalents_time, trans_x, trans_y, trans_z, trans_o, transguid, extra_flags, stable_slots, at_login, zone, online, death_expire_time, taxi_path, dungeon_difficulty,"
-    // 39           40                41                42                    43          44          45              46           47               48              49
-    //"arenaPoints, totalHonorPoints, todayHonorPoints, yesterdayHonorPoints, totalKills, todayKills, yesterdayKills, chosenTitle, knownCurrencies, watchedFaction, drunk,"
-    // 50      51      52      53      54      55      56         57          58             59              60           61         
+    // 39          40          41              42           43               44              45
+    //"totalKills, todayKills, yesterdayKills, chosenTitle, knownCurrencies, watchedFaction, drunk,"
+    // 46      47      48      49      50      51      52         53          54             55              56           57
     //"health, power1, power2, power3, power4, power5, specCount, activeSpec, exploredZones, equipmentCache, knownTitles, actionBars FROM characters WHERE guid = '%u'", GUID_LOPART(m_guid));
     QueryResult *result = holder->GetResult(PLAYER_LOGIN_QUERY_LOADFROM);
 
@@ -15446,8 +15370,8 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder *holder )
     SetUInt32Value(UNIT_FIELD_LEVEL, fields[6].GetUInt8());
     SetUInt32Value(PLAYER_XP, fields[7].GetUInt32());
 
-    _LoadIntoDataField(fields[58].GetString(), PLAYER_EXPLORED_ZONES_1, PLAYER_EXPLORED_ZONES_SIZE);
-    _LoadIntoDataField(fields[60].GetString(), PLAYER__FIELD_KNOWN_TITLES, KNOWN_TITLES_SIZE*2);
+    _LoadIntoDataField(fields[52].GetString(), PLAYER_EXPLORED_ZONES_1, PLAYER_EXPLORED_ZONES_SIZE);
+    _LoadIntoDataField(fields[56].GetString(), PLAYER__FIELD_KNOWN_TITLES, KNOWN_TITLES_SIZE*2);
 
     InitDisplayIds();                                       // model, scale and model data
 
@@ -15465,17 +15389,17 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder *holder )
     SetUInt32Value(PLAYER_BYTES, fields[9].GetUInt32());
     SetUInt32Value(PLAYER_BYTES_2, fields[10].GetUInt32());
 
-    m_drunk = fields[49].GetUInt16();
+    m_drunk = fields[45].GetUInt16();
 
     SetUInt16Value(PLAYER_BYTES_3, 0, (m_drunk & 0xFFFE) | gender);
 
     SetUInt32Value(PLAYER_FLAGS, fields[11].GetUInt32());
-    SetInt32Value(PLAYER_FIELD_WATCHED_FACTION_INDEX, fields[48].GetInt32());
+    SetInt32Value(PLAYER_FIELD_WATCHED_FACTION_INDEX, fields[44].GetInt32());
 
     //SetUInt64Value(PLAYER_FIELD_KNOWN_CURRENCIES, fields[47].GetUInt64());
 
     // Action bars state
-    SetByteValue(PLAYER_FIELD_BYTES, 2, fields[61].GetUInt8());
+    SetByteValue(PLAYER_FIELD_BYTES, 2, fields[57].GetUInt8());
 
     // cleanup inventory related item value fields (its will be filled correctly in _LoadInventory)
     for(uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
@@ -15521,8 +15445,6 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder *holder )
 
     _LoadArenaTeamInfo(holder->GetResult(PLAYER_LOGIN_QUERY_LOADARENAINFO));
 
-    SetArenaPoints(fields[39].GetUInt32());
-
     // check arena teams integrity
     for(uint32 arena_slot = 0; arena_slot < MAX_ARENA_SLOT; ++arena_slot)
     {
@@ -15539,13 +15461,9 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder *holder )
             SetArenaTeamInfoField(arena_slot, ArenaTeamInfoType(j), 0);
     }
 
-    SetHonorPoints(fields[40].GetUInt32());
-
-    //SetUInt32Value(PLAYER_FIELD_TODAY_CONTRIBUTION, fields[41].GetUInt32());
-    //SetUInt32Value(PLAYER_FIELD_YESTERDAY_CONTRIBUTION, fields[42].GetUInt32());
-    SetUInt32Value(PLAYER_FIELD_LIFETIME_HONORBALE_KILLS, fields[43].GetUInt32());
-    SetUInt16Value(PLAYER_FIELD_KILLS, 0, fields[44].GetUInt16());
-    SetUInt16Value(PLAYER_FIELD_KILLS, 1, fields[45].GetUInt16());
+    SetUInt32Value(PLAYER_FIELD_LIFETIME_HONORBALE_KILLS, fields[39].GetUInt32());
+    SetUInt16Value(PLAYER_FIELD_KILLS, 0, fields[40].GetUInt16());
+    SetUInt16Value(PLAYER_FIELD_KILLS, 1, fields[41].GetUInt16());
 
     _LoadBoundInstances(holder->GetResult(PLAYER_LOGIN_QUERY_LOADBOUNDINSTANCES));
 
@@ -15744,11 +15662,6 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder *holder )
 
     m_atLoginFlags = fields[33].GetUInt32();
 
-    // Honor system
-    // Update Honor kills data
-    m_lastHonorUpdateTime = logoutTime;
-    UpdateHonorFields();
-
     m_deathExpireTime = (time_t)fields[36].GetUInt64();
     if(m_deathExpireTime > now+MAX_DEATH_COUNT*DEATH_EXPIRE_STEP)
         m_deathExpireTime = now+MAX_DEATH_COUNT*DEATH_EXPIRE_STEP-1;
@@ -15815,8 +15728,8 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder *holder )
     _LoadMailedItems(holder->GetResult(PLAYER_LOGIN_QUERY_LOADMAILEDITEMS));
     UpdateNextMailTimeAndUnreads();
 
-    m_specsCount = fields[56].GetUInt8();
-    m_activeSpec = fields[57].GetUInt8();
+    m_specsCount = fields[52].GetUInt8();
+    m_activeSpec = fields[53].GetUInt8();
 
     _LoadGlyphs(holder->GetResult(PLAYER_LOGIN_QUERY_LOADGLYPHS));
 
@@ -15827,6 +15740,8 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder *holder )
     if( HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST) )
         m_deathState = DEAD;
 
+    _LoadCurrency(holder->GetResult(PLAYER_LOGIN_QUERY_LOADCURRENCIES));
+    _LoadConquestPointsWeekCap(holder->GetResult(PLAYER_LOGIN_QUERY_LOADCPWEEKCAP));
     _LoadSpells(holder->GetResult(PLAYER_LOGIN_QUERY_LOADSPELLS));
 
     // after spell load, learn rewarded spell if need also
@@ -15856,7 +15771,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder *holder )
 
     // check PLAYER_CHOSEN_TITLE compatibility with PLAYER__FIELD_KNOWN_TITLES
     // note: PLAYER__FIELD_KNOWN_TITLES updated at quest status loaded
-    uint32 curTitle = fields[46].GetUInt32();
+    uint32 curTitle = fields[42].GetUInt32();
     if (curTitle && !HasTitle(curTitle))
         curTitle = 0;
 
@@ -15924,12 +15839,12 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder *holder )
     UpdateAllStats();
 
     // restore remembered power/health values (but not more max values)
-    uint32 savedhealth = fields[50].GetUInt32();
+    uint32 savedhealth = fields[46].GetUInt32();
     SetHealth(savedhealth > GetMaxHealth() ? GetMaxHealth() : savedhealth);
 
     /*for(uint32 i = 0; i < MAX_POWERS; ++i)
     {
-        uint32 savedpower = fields[51+i].GetUInt32();
+        uint32 savedpower = fields[47+i].GetUInt32();
         SetPower(Powers(i),savedpower > GetMaxPower(Powers(i)) ? GetMaxPower(Powers(i)) : savedpower);
     }*/
 
@@ -17227,9 +17142,6 @@ void Player::SaveToDB()
         return;
     }
 
-    // first save/honor gain after midnight will also update the player's honor fields
-    UpdateHonorFields();
-
     DEBUG_FILTER_LOG(LOG_FILTER_PLAYER_STATS, "The value of player %s at save: ", m_name.c_str());
     outDebugStatsValues();
 
@@ -17246,7 +17158,7 @@ void Player::SaveToDB()
         "taximask, online, cinematic, "
         "totaltime, leveltime, rest_bonus, logout_time, is_logout_resting, resettalents_cost, resettalents_time, "
         "trans_x, trans_y, trans_z, trans_o, transguid, extra_flags, stable_slots, at_login, zone, "
-        "death_expire_time, taxi_path, arenaPoints, totalHonorPoints, todayHonorPoints, yesterdayHonorPoints, totalKills, "
+        "death_expire_time, taxi_path, totalKills, "
         "todayKills, yesterdayKills, chosenTitle, knownCurrencies, watchedFaction, drunk, health, power1, power2, power3, "
         "power4, power5, specCount, activeSpec, exploredZones, equipmentCache, knownTitles, actionBars) "
         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
@@ -17254,7 +17166,7 @@ void Player::SaveToDB()
         "?, ?, ?, "
         "?, ?, ?, ?, ?, ?, ?, "
         "?, ?, ?, ?, ?, ?, ?, ?, ?, "
-        "?, ?, ?, ?, ?, ?, ?, "
+        "?, ?, ?, "
         "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, "
         "?, ?, ?, ?, ?, ?, ?, ?) ");
 
@@ -17331,14 +17243,6 @@ void Player::SaveToDB()
     ss << m_taxi.SaveTaxiDestinationsToString();       //string
     uberInsert.addString(ss);
 
-    uberInsert.addUInt32(GetArenaPoints());
-
-    uberInsert.addUInt32(GetHonorPoints());
-
-    uberInsert.addUInt32(0);                                // FIXME 4x GetUInt32Value(PLAYER_FIELD_TODAY_CONTRIBUTION)
-
-    uberInsert.addUInt32(0);                                // FIXME 4x GetUInt32Value(PLAYER_FIELD_YESTERDAY_CONTRIBUTION)
-
     uberInsert.addUInt32(GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORBALE_KILLS));
 
     uberInsert.addUInt16(GetUInt16Value(PLAYER_FIELD_KILLS, 0));
@@ -17404,6 +17308,8 @@ void Player::SaveToDB()
     GetSession()->SaveTutorialsData();                      // changed only while character in game
     _SaveGlyphs();
     _SaveTalents();
+    _SaveCurrency();
+    _SaveConquestPointsWeekCap();
 
     CharacterDatabase.CommitTransaction();
 
@@ -19228,15 +19134,23 @@ void Player::TakeExtendedCost(uint32 extendedCostId, uint32 count)
 {
     ItemExtendedCostEntry const* extendedCost = sItemExtendedCostStore.LookupEntry(extendedCostId);
 
-    if (extendedCost->reqhonorpoints)
-        ModifyHonorPoints(-int32(extendedCost->reqhonorpoints * count));
-    if (extendedCost->reqarenapoints)
-        ModifyArenaPoints(-int32(extendedCost->reqarenapoints * count));
-
     for (uint8 i = 0; i < MAX_EXTENDED_COST_ITEMS; ++i)
     {
         if (extendedCost->reqitem[i])
             DestroyItemCount(extendedCost->reqitem[i], extendedCost->reqitemcount[i] * count, true);
+    }
+
+    for (int i = 0; i < MAX_EXTENDED_COST_CURRENCIES; ++i)
+    {
+        if (extendedCost->reqcur[i] == CURRENCY_TYPE_NONE)
+            continue;
+
+        CurrencyTypesEntry const * entry = sCurrencyTypesStore.LookupEntry(extendedCost->reqcur[i]);
+        if (!entry)
+            continue;
+
+        int32 cost = int32(extendedCost->reqcurrcount[i] * count / (entry->HasPrecision() ? CURRENCY_PRECISION : 1.0f));
+        ModifyCurrency(entry->ID, -cost);
     }
 }
 
@@ -19332,18 +19246,22 @@ bool Player::BuyItemFromVendorSlot(ObjectGuid vendorGuid, uint32 vendorslot, uin
             return false;
         }
 
-        // honor points price
-        if (GetHonorPoints() < (iece->reqhonorpoints * count))
+        // currency price
+        for (uint8 i = 0; i < MAX_EXTENDED_COST_CURRENCIES; ++i)
         {
-            SendEquipError(EQUIP_ERR_NOT_ENOUGH_HONOR_POINTS, NULL, NULL);
-            return false;
-        }
+            if (iece->reqcur[i] == CURRENCY_TYPE_NONE)
+                continue;
 
-        // arena points price
-        if (GetArenaPoints() < (iece->reqarenapoints * count))
-        {
-            SendEquipError(EQUIP_ERR_NOT_ENOUGH_ARENA_POINTS, NULL, NULL);
-            return false;
+            CurrencyTypesEntry const * entry = sCurrencyTypesStore.LookupEntry(iece->reqcur[i]);
+            if (!entry)
+                continue;
+
+            int32 cost = int32(iece->reqcurrcount[i] * count / (entry->HasPrecision() ? CURRENCY_PRECISION : 1.0f));
+            if (!HasCurrency(entry->ID, count * cost))
+            {
+                SendEquipError(EQUIP_ERR_VENDOR_MISSING_TURNINS, NULL);
+                return false;
+            }
         }
 
         // item base price
@@ -23253,5 +23171,304 @@ PlayerTalentHolder::PlayerTalentHolder()
 
 void Player::SendCurrencies() const
 {
-    //WorldPacket data(SMSG_SETUP_CURRENCY, ...);
+    WorldPacket data(SMSG_SETUP_CURRENCY, m_currencies.size());
+    uint32 count = m_currencies.size();
+    data.WriteBits(count, 23);
+
+    if (m_currencies.size() == 0)
+    {
+        GetSession()->SendPacket(&data);
+        return;
+    }
+
+    for (int i = 0; i < count; ++i)
+    {
+        for (int j = 0; j < 7; ++j)
+        {
+            if (/*j == 0 || */j == 5/* || j == 6*/)
+                data.WriteBit(true);
+            else
+                data.WriteBit(false);
+        }
+    }
+
+    for (PlayerCurrenciesMap::const_iterator itr = m_currencies.begin(); itr != m_currencies.end(); ++itr)
+    {
+        CurrencyTypesEntry const * entry = sCurrencyTypesStore.LookupEntry(itr->first);
+
+        data << uint32(itr->second.totalCount);
+        //data << uint32(itr->second.weekCount);
+        data << uint32(_GetCurrencyWeekCap(entry));
+        //data << uint32(0);
+        data << uint32(itr->first);
+    }
+
+    GetSession()->SendPacket(&data);
+    sLog.outError("End of send currencies for %s size %u", GetGuidStr().c_str(), count);
 }
+
+void Player::ResetCurrencyWeekCap()
+{
+    for (PlayerCurrenciesMap::iterator itr = m_currencies.begin(); itr != m_currencies.end(); ++itr)
+        itr->second.weekCount = 0;
+
+    // Calculating week cap for conquest points
+    CharacterDatabase.Execute("UPDATE character_cp_weekcap SET weekCap = ROUND(1.4326 * (1511.26 / (1 + 1639.28 / exp(0.00412 * `maxWeekRating`))) + 857.15) WHERE `source`=0 AND `maxWeekRating` BETWEEN 1500 AND 3000");
+    CharacterDatabase.PExecute("UPDATE character_cp_weekcap SET weekCap = '%u' WHERE `source`=0 AND `maxWeekRating` < 1500", PLAYER_DEFAULT_CONQUEST_POINTS_WEEK_CAP);
+    CharacterDatabase.Execute("UPDATE character_cp_weekcap SET weekCap =3000 WHERE `source`=0 AND `maxWeekRating` > 3000");
+    CharacterDatabase.Execute("UPDATE character_cp_weekcap SET maxWeekRating = 0");
+
+    if (m_maxWeekRating[CP_SOURCE_ARENA] <= 1500)
+        m_conquestPointsWeekCap[CP_SOURCE_ARENA] = PLAYER_DEFAULT_CONQUEST_POINTS_WEEK_CAP;
+    else if (m_maxWeekRating[CP_SOURCE_ARENA] > 3000)
+        m_conquestPointsWeekCap[CP_SOURCE_ARENA] = 3000;
+    else
+        m_conquestPointsWeekCap[CP_SOURCE_ARENA] = uint16(1.4326 * (1511.26 / (1 + 1639.28 / exp(0.00412 * m_maxWeekRating[CP_SOURCE_ARENA]))) + 857.15f);
+
+    m_maxWeekRating[CP_SOURCE_ARENA] = 0; // player must win at least 1 arena for week to change m_conquestPointsWeekCap
+
+    _SaveConquestPointsWeekCap();
+    _SaveCurrency();
+    SendCurrencies();
+}
+
+uint32 Player::_GetCurrencyWeekCap(const CurrencyTypesEntry* currency) const
+{
+    uint32 cap = currency->WeekCap;
+    switch (currency->ID)
+    {
+        case CURRENCY_TYPE_CONQUEST_POINTS:
+            cap = uint32((currency->HasPrecision() ? CURRENCY_PRECISION : 1.0f) * m_conquestPointsWeekCap[CP_SOURCE_ARENA] * sWorld.getConfig(CONFIG_FLOAT_RATE_CONQUEST_POINTS_WEEK_CAP));
+            break;
+        case CURRENCY_TYPE_VALOR_POINTS:
+            cap = uint32(cap * sWorld.getConfig(CONFIG_FLOAT_RATE_VALOR_POINTS_WEEK_CAP));
+            break;
+    }
+
+    if (cap != currency->WeekCap && IsInWorld() && !GetSession()->PlayerLoading())
+    {
+        WorldPacket packet(SMSG_SET_CURRENCY_WEEK_LIMIT, 8);
+        packet << uint32(currency->HasPrecision() ? cap / CURRENCY_PRECISION : cap);
+        packet << uint32(currency->ID);
+        GetSession()->SendPacket(&packet);
+    }
+
+    return cap;
+}
+
+void Player::_SaveCurrency()
+{
+    for (PlayerCurrenciesMap::iterator itr = m_currencies.begin(); itr != m_currencies.end();)
+    {
+        if (itr->second.state == PLAYERCURRENCY_CHANGED)
+            CharacterDatabase.PExecute("UPDATE character_currency SET `count` = '%u', thisweek = '%u' WHERE guid = '%u' AND currency = '%u'", itr->second.totalCount, itr->second.weekCount, GetGUIDLow(), itr->first);
+        else if (itr->second.state == PLAYERCURRENCY_NEW)
+            CharacterDatabase.PExecute("INSERT INTO character_currency (guid, currency, `count`, thisweek) VALUES ('%u', '%u', '%u', '%u')", GetGUIDLow(), itr->first, itr->second.totalCount, itr->second.weekCount);
+
+        if (itr->second.state == PLAYERCURRENCY_REMOVED)
+            m_currencies.erase(itr++);
+        else
+        {
+            itr->second.state = PLAYERCURRENCY_UNCHANGED;
+            ++itr;
+        }
+    }
+}
+
+void Player::_SaveConquestPointsWeekCap()
+{
+    CharacterDatabase.PExecute("DELETE FROM character_cp_weekcap WHERE guid = '%u'", GetGUIDLow());
+    for (uint8 source = 0; source < CP_SOURCE_MAX; ++source)
+        CharacterDatabase.PExecute("INSERT INTO character_cp_weekcap (guid, source, maxWeekRating, weekCap) VALUES ('%u', '%u', '%u', '%u')", GetGUIDLow(), source, m_maxWeekRating[source], m_conquestPointsWeekCap[source]);
+}
+
+uint32 Player::GetCurrency(uint32 id) const
+{
+    PlayerCurrenciesMap::const_iterator itr = m_currencies.find(id);
+    return itr != m_currencies.end() ? itr->second.totalCount : 0;
+}
+
+bool Player::HasCurrency(uint32 id, uint32 count) const
+{
+    PlayerCurrenciesMap::const_iterator itr = m_currencies.find(id);
+    return itr != m_currencies.end() && itr->second.totalCount >= count;
+}
+
+void Player::ModifyCurrency(uint32 id, int32 count)
+{
+    if (!count)
+        return;
+
+    const CurrencyTypesEntry* currency = sCurrencyTypesStore.LookupEntry(id);
+    STRAWBERRY_ASSERT(currency);
+
+    int32 oldTotalCount = 0;
+    int32 oldWeekCount = 0;
+    PlayerCurrenciesMap::iterator itr = m_currencies.find(id);
+
+    if (itr == m_currencies.end())
+    {
+        PlayerCurrency cur;
+        cur.state = PLAYERCURRENCY_NEW;
+        cur.totalCount = 0;
+        cur.weekCount = 0;
+        m_currencies[id] = cur;
+        itr = m_currencies.find(id);
+    }
+    else
+    {
+        oldTotalCount = itr->second.totalCount;
+        oldWeekCount = itr->second.weekCount;
+    }
+
+    int32 newTotalCount = oldTotalCount + count;
+    if (newTotalCount < 0)
+        newTotalCount = 0;
+
+    int32 newWeekCount = oldWeekCount + (count > 0 ? count : 0);
+    if (newWeekCount < 0)
+        newWeekCount = 0;
+
+    uint32 totalCap = _GetCurrencyTotalCap(currency);
+    if (totalCap && int32(totalCap) < newTotalCount)
+    {
+        int32 delta = newTotalCount - totalCap;
+        newTotalCount = totalCap;
+        newWeekCount -= delta;
+    }
+
+    uint32 weekCap = _GetCurrencyWeekCap(currency);
+    if (weekCap && int32(weekCap) < newWeekCount)
+    {
+        int32 delta = newWeekCount - weekCap;
+        newWeekCount = weekCap;
+        newTotalCount -= delta;
+    }
+
+    if (newTotalCount != oldTotalCount)
+    {
+        if (itr->second.state != PLAYERCURRENCY_NEW)
+            itr->second.state = PLAYERCURRENCY_CHANGED;
+
+        itr->second.totalCount = newTotalCount;
+        itr->second.weekCount = newWeekCount;
+
+        // probably excessive checks
+        if (IsInWorld() && !GetSession()->PlayerLoading())
+        {
+            if (count > 0)
+                UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_CURRENCY, id, uint32(count * (currency->HasPrecision() ? CURRENCY_PRECISION : 1.0f)));
+
+            WorldPacket packet(SMSG_SET_CURRENCY, 12);
+            bool bit0 = false;
+            bool bit1 = newTotalCount;
+            bool bit2 = false;
+            packet.WriteBit(bit0);
+            packet.WriteBit(bit1);
+            packet.WriteBit(bit2);
+
+            if (bit1)
+                packet << uint32(weekCap ? newWeekCount : 0);
+            packet << uint32(newTotalCount);
+            packet << uint32(id);
+            if (bit0)
+                packet << uint32(0);    // unknown
+            GetSession()->SendPacket(&packet);
+        }
+    }
+}
+
+uint32 Player::_GetCurrencyTotalCap(const CurrencyTypesEntry* currency) const
+{
+    uint32 cap = currency->TotalCap;
+    switch (currency->ID)
+    {
+        case CURRENCY_TYPE_HONOR_POINTS:
+            cap = (currency->HasPrecision() ? CURRENCY_PRECISION : 1.0f) * sWorld.getConfig(CONFIG_UINT32_HONOR_POINTS_TOTAL_CAP);
+            break;
+        case CURRENCY_TYPE_JUSTICE_POINTS:
+            cap = (currency->HasPrecision() ? CURRENCY_PRECISION : 1.0f) * sWorld.getConfig(CONFIG_UINT32_JUSTICE_POINTS_TOTAL_CAP);
+            break;
+    }
+
+    return currency->HasPrecision() ? cap / CURRENCY_PRECISION : cap;
+}
+
+void Player::SetCurrency(uint32 id, uint32 count)
+{
+    ModifyCurrency(id, int32(count) - GetCurrency(id));
+}
+
+void Player::_LoadCurrency(QueryResult* result)
+{
+    //         0         1      2
+    // "SELECT currency, count, thisweek FROM character_currency WHERE guid = '%u'"
+
+    if (result)
+    {
+        do
+        {
+            Field *fields = result->Fetch();
+
+            uint32 currency_id = fields[0].GetUInt16();
+            uint32 totalCount = fields[1].GetUInt32();
+            uint32 weekCount = fields[2].GetUInt32();
+
+            const CurrencyTypesEntry* entry = sCurrencyTypesStore.LookupEntry(currency_id);
+            if (!entry)
+            {
+                sLog.outError("Player::_LoadCurrency: %s has not existing currency %u, removing.", GetGuidStr().c_str(), currency_id);
+                CharacterDatabase.PExecute("DELETE FROM character_currency WHERE currency = '%u'", currency_id);
+                continue;
+            }
+
+            uint32 weekCap  = _GetCurrencyWeekCap(entry);
+            uint32 totalCap = _GetCurrencyTotalCap(entry);
+
+            PlayerCurrency cur;
+
+            cur.state = PLAYERCURRENCY_UNCHANGED;
+
+            if (totalCap == 0) // unlimited, don't check
+                cur.totalCount = totalCount;
+            else
+                cur.totalCount = totalCount > totalCap ? totalCap : totalCount;
+
+            if (weekCap == 0)
+                cur.weekCount = weekCount;
+            else
+                cur.weekCount = weekCount > weekCap ? weekCap : weekCount;
+
+            m_currencies[currency_id] = cur;
+        }
+        while (result->NextRow());
+    }
+}
+
+void Player::_LoadConquestPointsWeekCap(QueryResult* result)
+{
+    //         0       1              2
+    // "SELECT source, maxWeekRating, weekCap FROM character_cp_weekcap WHERE guid = '%u'"
+
+    if (result)
+    {
+        do
+        {
+            Field *fields = result->Fetch();
+
+            uint16 source = fields[0].GetUInt16();
+            if (source != CP_SOURCE_ARENA && source != CP_SOURCE_RATED_BG)
+                continue;
+
+            m_maxWeekRating[source] = fields[1].GetUInt16();
+            m_conquestPointsWeekCap[source] = fields[2].GetUInt16();
+        }
+        while (result->NextRow());
+    }
+}
+
+void Player::UpdateMaxWeekRating(ConquestPointsSources source, uint8 slot)
+{
+    m_maxWeekRating[source] = std::max(m_maxWeekRating[source], (uint16)GetArenaPersonalRating(slot));
+}
+

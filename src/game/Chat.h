@@ -269,7 +269,6 @@ class ChatHandler
 
         bool HandleHonorAddCommand(char* args);
         bool HandleHonorAddKillCommand(char* args);
-        bool HandleHonorUpdateCommand(char* args);
 
         bool HandleInstanceListBindsCommand(char* args);
         bool HandleInstanceUnbindCommand(char* args);
@@ -331,9 +330,8 @@ class ChatHandler
         bool HandleModifyMountCommand(char* args);
         bool HandleModifyFactionCommand(char* args);
         bool HandleModifyTalentCommand(char* args);
-        bool HandleModifyHonorCommand(char* args);
         bool HandleModifyRepCommand(char* args);
-        bool HandleModifyArenaCommand(char* args);
+        bool HandleModifyCurrencyCommand(char* args);
         bool HandleModifyPhaseCommand(char* args);
         bool HandleModifyGenderCommand(char* args);
 
@@ -592,7 +590,6 @@ class ChatHandler
         bool HandleRespawnCommand(char* args);
         bool HandleComeToMeCommand(char* args);
         bool HandleCombatStopCommand(char* args);
-        bool HandleFlushArenaPointsCommand(char* args);
         bool HandleRepairitemsCommand(char* args);
         bool HandleStableCommand(char* args);
         bool HandleWaterwalkCommand(char* args);

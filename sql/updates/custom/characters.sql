@@ -1,0 +1,9 @@
+ALTER TABLE characters DROP COLUMN power6;
+ALTER TABLE characters DROP COLUMN power7;
+ALTER TABLE characters DROP COLUMN power8;
+ALTER TABLE characters DROP COLUMN power9;
+ALTER TABLE characters DROP COLUMN power10;
+ALTER TABLE characters DROP COLUMN arenaPoints;
+ALTER TABLE characters DROP COLUMN totalHonorPoints;
+ALTER TABLE characters DROP COLUMN todayHonorPoints;
+ALTER TABLE characters DROP COLUMN yesterdayHonorPoints;

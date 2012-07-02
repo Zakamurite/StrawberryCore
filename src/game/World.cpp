@@ -70,6 +70,7 @@
 #include "WardenDataStorage.h"
 #include "ScriptMgr.h"
 #include "BattlefieldMgr.h"
+#include "ArenaTeam.h"
 
 INSTANTIATE_SINGLETON_1( World );
 
@@ -607,13 +608,11 @@ void World::LoadConfigSettings(bool reload)
 
     setConfigMinMax(CONFIG_UINT32_START_PLAYER_MONEY, "StartPlayerMoney", 0, 0, MAX_MONEY_AMOUNT);
 
-    setConfig(CONFIG_UINT32_MAX_HONOR_POINTS, "MaxHonorPoints", 75000);
+    setConfig(CONFIG_UINT32_HONOR_POINTS_TOTAL_CAP, "Currency.HonorPointsTotalCap", 4000);
 
-    setConfigMinMax(CONFIG_UINT32_START_HONOR_POINTS, "StartHonorPoints", 0, 0, getConfig(CONFIG_UINT32_MAX_HONOR_POINTS));
+    setConfigMinMax(CONFIG_UINT32_START_HONOR_POINTS, "StartHonorPoints", 0, 0, getConfig(CONFIG_UINT32_HONOR_POINTS_TOTAL_CAP));
 
-    setConfig(CONFIG_UINT32_MAX_ARENA_POINTS, "MaxArenaPoints", 5000);
-
-    setConfigMinMax(CONFIG_UINT32_START_ARENA_POINTS, "StartArenaPoints", 0, 0, getConfig(CONFIG_UINT32_MAX_ARENA_POINTS));
+    setConfig(CONFIG_UINT32_START_ARENA_POINTS, "StartArenaPoints", 0);
 
     setConfig(CONFIG_BOOL_ALL_TAXI_PATHS, "AllFlightPaths", false);
 
@@ -761,12 +760,10 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_UINT32_BATTLEGROUND_PREMADE_GROUP_WAIT_FOR_MATCH, "BattleGround.PremadeGroupWaitForMatch", 30 * MINUTE * IN_MILLISECONDS);
     setConfig(CONFIG_UINT32_ARENA_MAX_RATING_DIFFERENCE,               "Arena.MaxRatingDifference", 150);
     setConfig(CONFIG_UINT32_ARENA_RATING_DISCARD_TIMER,                "Arena.RatingDiscardTimer", 10 * MINUTE * IN_MILLISECONDS);
-    setConfig(CONFIG_BOOL_ARENA_AUTO_DISTRIBUTE_POINTS,                "Arena.AutoDistributePoints", false);
-    setConfig(CONFIG_UINT32_ARENA_AUTO_DISTRIBUTE_INTERVAL_DAYS,       "Arena.AutoDistributeInterval", 7);
     setConfig(CONFIG_BOOL_ARENA_QUEUE_ANNOUNCER_JOIN,                  "Arena.QueueAnnouncer.Join", false);
     setConfig(CONFIG_BOOL_ARENA_QUEUE_ANNOUNCER_EXIT,                  "Arena.QueueAnnouncer.Exit", false);
-    setConfig(CONFIG_UINT32_ARENA_SEASON_ID,                           "Arena.ArenaSeason.ID", 1);
-    setConfig(CONFIG_UINT32_ARENA_SEASON_PREVIOUS_ID,                  "Arena.ArenaSeasonPrevious.ID", 0);
+    setConfig(CONFIG_UINT32_ARENA_SEASON_ID,                           "Arena.ArenaSeason.ID", 11);
+    setConfig(CONFIG_BOOL_ARENA_SEASON_IN_PROGRESS,                    "Arena.ArenaSeason.InProgress", true);
     setConfigMin(CONFIG_INT32_ARENA_STARTRATING,                       "Arena.StartRating", -1, -1);
     setConfigMin(CONFIG_INT32_ARENA_STARTPERSONALRATING,               "Arena.StartPersonalRating", -1, -1);
 
@@ -801,6 +798,13 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT,      "PetUnsummonAtMount", true);
 
     setConfig(CONFIG_BOOL_WARDEN_KICK,                 "Warden.Kick", false);
+
+    setConfigMinMax(CONFIG_UINT32_CURRENCY_RESET_WEEK_DAY, "Currency.ResetWeekDay", 3, 0, 6);
+    setConfigMinMax(CONFIG_UINT32_CURRENCY_RESET_HOUR, "Currency.ResetHour", 6, 0, 23);
+    setConfig(CONFIG_UINT32_ARENA_CONQUEST_POINTS_REWARD, "Currency.Arena.Reward", 150);
+    setConfig(CONFIG_UINT32_JUSTICE_POINTS_TOTAL_CAP, "Currency.JusticePoints.TotalCap", 4000);
+    setConfig(CONFIG_UINT32_JUSTICE_POINTS_TOTAL_CAP, "Currency.Rate.ConquestPoints.WeekCap", 1);
+    setConfig(CONFIG_UINT32_JUSTICE_POINTS_TOTAL_CAP, "Currency.Rate.ValorPoints.WeekCap", 1);
 
     m_relocation_ai_notify_delay = sConfig.GetIntDefault("Visibility.AIRelocationNotifyDelay", 1000u);
     m_relocation_lower_limit_sq  = pow(sConfig.GetFloatDefault("Visibility.RelocationLowerLimit",10), 2);
@@ -1386,7 +1390,6 @@ void World::SetInitialWorldSettings()
     ///- Initialize Battlegrounds
     sLog.outString( "Starting BattleGround System" );
     sBattleGroundMgr.CreateInitialBattleGrounds();
-    sBattleGroundMgr.InitAutomaticArenaPointDistribution();
 
     ///- Initialize Battlefields
     sLog.outString( "Starting Battlefield System" );
@@ -1407,6 +1410,9 @@ void World::SetInitialWorldSettings()
 
     sLog.outString("Calculate next monthly quest reset time..." );
     SetMonthlyQuestResetTime();
+
+    sLog.outString("Calculate next currency reset time...");
+    InitCurrencyResetTime();
 
     sLog.outString("Starting Game Event system..." );
     uint32 nextGameEvent = sGameEventMgr.Initialize();
@@ -1504,6 +1510,10 @@ void World::Update(uint32 diff)
     /// Handle monthly quests reset time
     if (m_gameTime > m_NextMonthlyQuestReset)
         ResetMonthlyQuests();
+
+    /// Handle monthly quests reset time
+    if (m_gameTime > m_NextCurrencyReset)
+        ResetCurrencyWeekCap();
 
     /// <ul><li> Handle auctions when the timer has passed
     if (m_timers[WUPDATE_AUCTIONS].Passed())
@@ -2149,6 +2159,40 @@ void World::SetMonthlyQuestResetTime(bool initialize)
     CharacterDatabase.PExecute("UPDATE saved_variables SET NextMonthlyQuestResetTime = '"UI64FMTD"'", uint64(m_NextMonthlyQuestReset));
 }
 
+void World::InitCurrencyResetTime()
+{
+    QueryResult * result = CharacterDatabase.Query("SELECT NextCurrencyResetTime FROM saved_variables");
+    if (!result)
+        m_NextCurrencyReset = time_t(time(NULL));        // game time not yet init
+    else
+        m_NextCurrencyReset = time_t((*result)[0].GetUInt64());
+
+    // generate time by config
+    time_t curTime = time(NULL);
+    tm localTm = *localtime(&curTime);
+
+    int week_day_offset = localTm.tm_wday - int(getConfig(CONFIG_UINT32_CURRENCY_RESET_WEEK_DAY));
+
+    // current week reset time
+    localTm.tm_hour = getConfig(CONFIG_UINT32_CURRENCY_RESET_HOUR);
+    localTm.tm_min  = 0;
+    localTm.tm_sec  = 0;
+    time_t nextWeekResetTime = mktime(&localTm);
+    nextWeekResetTime -= week_day_offset * DAY;             // move time to proper day
+
+    // next reset time before current moment
+    if (curTime >= nextWeekResetTime)
+        nextWeekResetTime += WEEK;
+
+    // normalize reset time
+    m_NextCurrencyReset = m_NextCurrencyReset < curTime ? nextWeekResetTime - WEEK : nextWeekResetTime;
+
+    if (!result)
+        CharacterDatabase.PExecute("INSERT INTO saved_variables (NextCurrencyResetTime) VALUES ('"UI64FMTD"')", uint64(m_NextCurrencyReset));
+    else
+        delete result;
+}
+
 void World::ResetDailyQuests()
 {
     DETAIL_LOG("Daily quests reset for all characters.");
@@ -2183,6 +2227,26 @@ void World::ResetMonthlyQuests()
             itr->second->GetPlayer()->ResetMonthlyQuestStatus();
 
     SetMonthlyQuestResetTime(false);
+}
+
+void World::ResetCurrencyWeekCap()
+{
+    CharacterDatabase.Execute("UPDATE character_currency SET thisweek = 0");
+    for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
+        if (itr->second->GetPlayer())
+            itr->second->GetPlayer()->ResetCurrencyWeekCap();
+
+    for(ObjectMgr::ArenaTeamMap::iterator titr = sObjectMgr.GetArenaTeamMapBegin(); titr != sObjectMgr.GetArenaTeamMapEnd(); ++titr)
+    {
+        if (ArenaTeam * at = titr->second)
+        {
+            at->FinishWeek();                              // set played this week etc values to 0 in memory, too
+            at->SaveToDB();                                // save changes
+            at->NotifyStatsChanged();                      // notify the players of the changes
+        }
+    }
+
+    m_NextCurrencyReset = time_t(m_NextCurrencyReset + WEEK);
 }
 
 void World::SetPlayerLimit( int32 limit, bool needUpdate )

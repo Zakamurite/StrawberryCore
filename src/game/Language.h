@@ -288,7 +288,7 @@ enum StrawberryStrings
     LANG_COMMAND_TICKETDEL              = 296,
     LANG_COMMAND_SPAWNDIST              = 297,
     LANG_COMMAND_SPAWNTIME              = 298,
-    LANG_COMMAND_MODIFY_HONOR           = 299,
+    //                                    299, not used
 
     LANG_YOUR_CHAT_DISABLED             = 300,
     LANG_YOU_DISABLE_CHAT               = 301,
@@ -297,7 +297,7 @@ enum StrawberryStrings
     LANG_YOU_ENABLE_CHAT                = 304,
 
     LANG_COMMAND_MODIFY_REP             = 305,
-    LANG_COMMAND_MODIFY_ARENA           = 306,
+    LANG_COMMAND_MODIFY_CURRENCY        = 306,
     LANG_COMMAND_FACTION_NOTFOUND       = 307,
     LANG_COMMAND_FACTION_UNKNOWN        = 308,
     LANG_COMMAND_FACTION_INVPARAM       = 309,
@@ -737,12 +737,12 @@ enum StrawberryStrings
     LANG_DEBUG_ARENA_OFF                = 738,
     LANG_DEBUG_BG_ON                    = 739,
     LANG_DEBUG_BG_OFF                   = 740,
-    LANG_DIST_ARENA_POINTS_START        = 741,
-    LANG_DIST_ARENA_POINTS_ONLINE_START = 742,
-    LANG_DIST_ARENA_POINTS_ONLINE_END   = 743,
-    LANG_DIST_ARENA_POINTS_TEAM_START   = 744,
-    LANG_DIST_ARENA_POINTS_TEAM_END     = 745,
-    LANG_DIST_ARENA_POINTS_END          = 746,
+//                                      = 741,
+//                                      = 742, not used
+//                                      = 743, not used
+//                                      = 744, not used
+//                                      = 745, not used
+//                                      = 746, not used
 //                                      = 747, not used
 //                                      = 748, not used
 //                                      = 749, not used

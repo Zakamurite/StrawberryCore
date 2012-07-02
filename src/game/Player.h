@@ -111,8 +111,37 @@ struct PlayerTalent
     PlayerSpellState state;
 };
 
+enum PlayerCurrencyState
+{
+    PLAYERCURRENCY_UNCHANGED = 0,
+    PLAYERCURRENCY_CHANGED   = 1,
+    PLAYERCURRENCY_NEW       = 2,
+    PLAYERCURRENCY_REMOVED   = 3
+};
+
+struct PlayerCurrency
+{
+    PlayerCurrencyState state;
+    uint32 totalCount;
+    uint32 weekCount;
+};
+
+enum CurrencyItems
+{
+    ITEM_HONOR_POINTS_ID    = 43308,
+    ITEM_ARENA_POINTS_ID    = 43307
+};
+
+enum ConquestPointsSources
+{
+    CP_SOURCE_ARENA     = 0,
+    CP_SOURCE_RATED_BG  = 1,
+    CP_SOURCE_MAX
+};
+
 typedef UNORDERED_MAP<uint32, PlayerSpell> PlayerSpellMap;
 typedef std::map<uint32, PlayerTalent> PlayerTalentMap;
+typedef UNORDERED_MAP<uint32, PlayerCurrency> PlayerCurrenciesMap;
 
 struct PlayerTalentHolder
 {
@@ -891,6 +920,8 @@ enum PlayerLoginQueryIndex
     PLAYER_LOGIN_QUERY_LOADTALENTS,
     PLAYER_LOGIN_QUERY_LOADWEEKLYQUESTSTATUS,
     PLAYER_LOGIN_QUERY_LOADMONTHLYQUESTSTATUS,
+    PLAYER_LOGIN_QUERY_LOADCURRENCIES,
+    PLAYER_LOGIN_QUERY_LOADCPWEEKCAP,
 
     MAX_PLAYER_LOGIN_QUERY
 };
@@ -1994,15 +2025,7 @@ class Player : public Unit
         /*********************************************************/
         /***                  PVP SYSTEM                       ***/
         /*********************************************************/
-        void UpdateArenaFields();
-        void UpdateHonorFields();
         bool RewardHonor(Unit *pVictim, uint32 groupsize, float honor = -1);
-        uint32 GetHonorPoints() { return m_honorPoints; }
-        uint32 GetArenaPoints() { return m_arenaPoints; }
-        void SetHonorPoints(uint32 honor);
-        void SetArenaPoints(uint32 arena);
-        void ModifyHonorPoints( int32 value );
-        void ModifyArenaPoints( int32 value );
 
         uint32 GetMaxPersonalArenaRatingRequirement(uint32 minarenaslot);
 
@@ -2373,6 +2396,7 @@ class Player : public Unit
         void SetTitle(CharTitlesEntry const* title, bool lost = false);
 
         bool canSeeSpellClickOn(Creature const* creature) const;
+
     protected:
 
         uint32 m_contestedPvPTimer;
@@ -2467,16 +2491,26 @@ class Player : public Unit
         int32 getMaxTimer(MirrorTimerType timer);
 
         /*********************************************************/
-        /***                  HONOR SYSTEM                     ***/
-        /*********************************************************/
-        time_t m_lastHonorUpdateTime;
-        uint32 m_honorPoints;
-        uint32 m_arenaPoints;
-
-        /*********************************************************/
         /***                CURRENCY SYSTEM                    ***/
         /*********************************************************/
+    public:
+        uint32 GetCurrency(uint32 id) const;
         void SendCurrencies() const;
+        void ModifyCurrency(uint32 id, int32 count);
+        void UpdateMaxWeekRating(ConquestPointsSources source, uint8 slot);
+        bool HasCurrency(uint32 id, uint32 count) const;
+        void SetCurrency(uint32 id, uint32 count);
+        void ResetCurrencyWeekCap();
+    private:
+        PlayerCurrenciesMap m_currencies;
+        uint32 _GetCurrencyWeekCap(const CurrencyTypesEntry* currency) const;
+        uint32 _GetCurrencyTotalCap(const CurrencyTypesEntry* currency) const;
+        uint16 m_maxWeekRating[CP_SOURCE_MAX];
+        uint16 m_conquestPointsWeekCap[CP_SOURCE_MAX];
+        void _SaveConquestPointsWeekCap();
+        void _SaveCurrency();
+        void _LoadCurrency(QueryResult* result);
+        void _LoadConquestPointsWeekCap(QueryResult* result);
 
         void outDebugStatsValues() const;
         ObjectGuid m_lootGuid;

@@ -3910,9 +3910,21 @@ bool ChatHandler::HandleDamageCommand(char* args)
     return true;
 }
 
-bool ChatHandler::HandleModifyArenaCommand(char* args)
+bool ChatHandler::HandleModifyCurrencyCommand(char* args)
 {
     if (!*args)
+        return false;
+
+    uint32 currencyId;
+    if (!ExtractUInt32(&args, currencyId))
+        return false;
+
+    CurrencyTypesEntry const * entry = sCurrencyTypesStore.LookupEntry(currencyId);
+    if (!entry)
+        return false;
+
+    int32 amount;
+    if (!ExtractInt32(&args, amount))
         return false;
 
     Player *target = getSelectedPlayer();
@@ -3923,11 +3935,9 @@ bool ChatHandler::HandleModifyArenaCommand(char* args)
         return false;
     }
 
-    int32 amount = (int32)atoi(args);
+    target->ModifyCurrency(currencyId, amount);
 
-    target->ModifyArenaPoints(amount);
-
-    PSendSysMessage(LANG_COMMAND_MODIFY_ARENA, GetNameLink(target).c_str(), target->GetArenaPoints());
+    PSendSysMessage(LANG_COMMAND_MODIFY_CURRENCY, currencyId, GetNameLink(target).c_str(), target->GetCurrency(currencyId));
 
     return true;
 }
@@ -4950,11 +4960,9 @@ bool ChatHandler::HandleResetHonorCommand(char* args)
     if (!ExtractPlayerTarget(&args, &target))
         return false;
 
-    target->SetHonorPoints(0);
+    target->SetCurrency(CURRENCY_TYPE_HONOR_POINTS, 0);
     target->SetUInt32Value(PLAYER_FIELD_KILLS, 0);
     target->SetUInt32Value(PLAYER_FIELD_LIFETIME_HONORBALE_KILLS, 0);
-    //target->SetUInt32Value(PLAYER_FIELD_TODAY_CONTRIBUTION, 0);
-    //target->SetUInt32Value(PLAYER_FIELD_YESTERDAY_CONTRIBUTION, 0);
     target->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_EARN_HONORABLE_KILL);
 
     return true;
@@ -7003,12 +7011,6 @@ bool ChatHandler::HandleSendMessageCommand(char* args)
     //Confirmation message
     std::string nameLink = GetNameLink(rPlayer);
     PSendSysMessage(LANG_SENDMESSAGE, nameLink.c_str(), args);
-    return true;
-}
-
-bool ChatHandler::HandleFlushArenaPointsCommand(char* /*args*/)
-{
-    sBattleGroundMgr.DistributeArenaPoints();
     return true;
 }
 

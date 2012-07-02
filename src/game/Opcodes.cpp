@@ -375,5 +375,8 @@ void InitOpcodeTable()
     OPCODE(CMSG_LOG_DISCONNECT,               STATUS_AUTHED,   PROCESS_THREADUNSAFE, &WorldSession::HandleLogDisconnect           );
     OPCODE(SMSG_STANDSTATE_UPDATE,            STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::HandleServerSide              );
     OPCODE(SMSG_CAST_FAILED,                  STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::HandleServerSide              );
+    OPCODE(SMSG_SETUP_CURRENCY,               STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::HandleServerSide              );
+    OPCODE(SMSG_SET_CURRENCY,                 STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::HandleServerSide              );
+    OPCODE(SMSG_SET_CURRENCY_WEEK_LIMIT,      STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::HandleServerSide              );
 };
 

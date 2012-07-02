@@ -367,10 +367,18 @@ enum AbilitySkillFlags
 
 enum CurrencyTypes
 {
+    CURRENCY_TYPE_NONE              = 0,
     CURRENCY_TYPE_CONQUEST_POINTS   = 390,
     CURRENCY_TYPE_HONOR_POINTS      = 392,
     CURRENCY_TYPE_JUSTICE_POINTS    = 395,
     CURRENCY_TYPE_VALOR_POINTS      = 396,
+};
+
+#define CURRENCY_PRECISION 100.0f
+
+enum CurrencyFlags
+{
+    CURRENCY_FLAG_HAS_PRECISION     = 0x8,
 };
 
 enum ItemEnchantmentType

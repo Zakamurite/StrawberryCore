@@ -1038,6 +1038,21 @@ void AchievementMgr::UpdateAchievementCriteria(AchievementCriteriaTypes type, ui
                 progressType = PROGRESS_HIGHEST;
                 break;
             }
+            case ACHIEVEMENT_CRITERIA_TYPE_CURRENCY:
+            {
+                if (!miscvalue1 || !miscvalue2)
+                    continue;
+
+                if (miscvalue1 != achievementCriteria->currencyGain.currency)
+                    continue;
+
+                if (int32(miscvalue2) < 0)
+                    continue;
+
+                change = miscvalue2;
+                progressType = PROGRESS_ACCUMULATE;
+                break;
+            }
             case ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_BATTLEGROUND:
                 // AchievementMgr::UpdateAchievementCriteria might also be called on login - skip in this case
                 if(!miscvalue1)
@@ -1719,6 +1734,8 @@ uint32 AchievementMgr::GetCriteriaProgressMaxCounter(AchievementCriteriaEntry co
             return achievementCriteria->complete_quest_count.totalQuestCount;
         case ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_QUESTS_IN_ZONE:
             return achievementCriteria->complete_quests_in_zone.questCount;
+        case ACHIEVEMENT_CRITERIA_TYPE_CURRENCY:
+            return achievementCriteria->currencyGain.count;
         case ACHIEVEMENT_CRITERIA_TYPE_DAMAGE_DONE:
         case ACHIEVEMENT_CRITERIA_TYPE_HEALING_DONE:
             return achievementCriteria->healing_done.count;

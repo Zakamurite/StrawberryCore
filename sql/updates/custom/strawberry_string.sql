@@ -1,0 +1,1 @@
+UPDATE `strawberry_string` SET `content_loc0` = 'The currency %u of %s was set to %u!' WHERE `entry` = 306;
