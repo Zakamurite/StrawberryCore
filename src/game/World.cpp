@@ -2247,6 +2247,8 @@ void World::ResetCurrencyWeekCap()
     }
 
     m_NextCurrencyReset = time_t(m_NextCurrencyReset + WEEK);
+
+    CharacterDatabase.PExecute("UPDATE saved_variables SET NextCurrencyResetTime = '"UI64FMTD"'", uint64(m_NextCurrencyReset));
 }
 
 void World::SetPlayerLimit( int32 limit, bool needUpdate )
