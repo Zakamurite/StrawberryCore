@@ -230,6 +230,20 @@ enum AchievementCriteriaTypes
     ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_QUESTS_GUILD = 134,
     ACHIEVEMENT_CRITERIA_TYPE_HONORABLE_KILLS_GUILD = 135,
     ACHIEVEMENT_CRITERIA_TYPE_KILL_CREATURE_TYPE_GUILD = 136,
+    // 137 no achievements
+    ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_GUILD_CHALLENGE = 138,
+    ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_GUILD_CHALLENGE_2 = 139,
+    // 140 no achievements
+    // 141 no achievements
+    // 142 no achievements
+    // 143 no achievements
+    // 144 no achievements
+    // 145 no achievements
+    // 146 no achievements
+    // 147 no achievements
+    // 148 no achievements
+    // 149 no achievements
+    // 150 no achievements
     // 0..150 => 151 criteria types total
 };
 
