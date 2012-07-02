@@ -474,6 +474,7 @@ enum Opcodes
     CMSG_LOG_DISCONNECT,
     SMSG_STANDSTATE_UPDATE,
     SMSG_SET_CURRENCY_WEEK_LIMIT,
+    SMSG_UPDATE_WORLD_STATE,
     MAX_OPCODE_VALUE
 };
 
@@ -973,7 +974,6 @@ enum Opcodes335a
     CMSG_SET_EXPLORATION                            = 0x2BE,
     UMSG_DELETE_GUILD_CHARTER                       = 0x2C0,
     MSG_PETITION_RENAME                             = 0x2C1,
-    SMSG_UPDATE_WORLD_STATE                         = 0x2C3,
     CMSG_CHAR_RENAME                                = 0x2C7,
     SMSG_CHAR_RENAME                                = 0x2C8,
     CMSG_MOVE_SPLINE_DONE                           = 0x2C9,
