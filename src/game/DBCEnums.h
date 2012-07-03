@@ -392,7 +392,8 @@ enum CurrencyTypes
 
 enum CurrencyFlags
 {
-    CURRENCY_FLAG_HAS_PRECISION     = 0x8,
+    CURRENCY_FLAG_HAS_PRECISION     = 0x08,
+    CURRENCY_FLAG_HAS_SEASON_COUNT  = 0x40, // guessed
 };
 
 enum ItemEnchantmentType

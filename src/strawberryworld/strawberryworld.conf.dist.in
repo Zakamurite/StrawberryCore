@@ -1493,13 +1493,13 @@ BattleGround.PremadeGroupWaitForMatch = 1800000
 #        Default: 0 (disable)
 #                 1 (enable)
 #
-#    Arena.ArenaSeason.ID
-#        Current area season id show in client
-#        Default: 11
+#    Arena.ArenaSeason.Previous.ID
+#        Previous arena season id shown in client
+#        Default: 10
 #
-#    Arena.ArenaSeason.InProgress
-#        Shows that current arena season is in progress
-#        Default: 1
+#    Arena.ArenaSeason.InProgress.ID
+#        Current arena season id shown in client
+#        Default: 11
 #
 #    Arena.StartRating
 #        Default Rating at team creation
@@ -1515,8 +1515,8 @@ Arena.MaxRatingDifference = 150
 Arena.RatingDiscardTimer = 600000
 Arena.QueueAnnouncer.Join = 0
 Arena.QueueAnnouncer.Exit = 0
-Arena.ArenaSeason.InProgress = 11
-Arena.ArenaSeason.ID = 1
+Arena.ArenaSeason.Previous.ID = 10
+Arena.ArenaSeason.InProgress.ID = 11
 Arena.StartRating = -1
 Arena.StartPersonalRating = -1
 

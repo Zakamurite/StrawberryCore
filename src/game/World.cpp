@@ -762,8 +762,8 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_UINT32_ARENA_RATING_DISCARD_TIMER,                "Arena.RatingDiscardTimer", 10 * MINUTE * IN_MILLISECONDS);
     setConfig(CONFIG_BOOL_ARENA_QUEUE_ANNOUNCER_JOIN,                  "Arena.QueueAnnouncer.Join", false);
     setConfig(CONFIG_BOOL_ARENA_QUEUE_ANNOUNCER_EXIT,                  "Arena.QueueAnnouncer.Exit", false);
-    setConfig(CONFIG_UINT32_ARENA_SEASON_ID,                           "Arena.ArenaSeason.ID", 11);
-    setConfig(CONFIG_BOOL_ARENA_SEASON_IN_PROGRESS,                    "Arena.ArenaSeason.InProgress", true);
+    setConfig(CONFIG_UINT32_ARENA_SEASON_PREVIOUS_ID,                  "Arena.ArenaSeason.Previous.ID", 10);
+    setConfig(CONFIG_UINT32_ARENA_SEASON_IN_PROGRESS_ID,               "Arena.ArenaSeason.InProgress.ID", 11);
     setConfigMin(CONFIG_INT32_ARENA_STARTRATING,                       "Arena.StartRating", -1, -1);
     setConfigMin(CONFIG_INT32_ARENA_STARTPERSONALRATING,               "Arena.StartPersonalRating", -1, -1);
 
@@ -803,8 +803,8 @@ void World::LoadConfigSettings(bool reload)
     setConfigMinMax(CONFIG_UINT32_CURRENCY_RESET_HOUR, "Currency.ResetHour", 6, 0, 23);
     setConfig(CONFIG_UINT32_ARENA_CONQUEST_POINTS_REWARD, "Currency.Arena.Reward", 150);
     setConfig(CONFIG_UINT32_JUSTICE_POINTS_TOTAL_CAP, "Currency.JusticePoints.TotalCap", 4000);
-    setConfig(CONFIG_UINT32_JUSTICE_POINTS_TOTAL_CAP, "Currency.Rate.ConquestPoints.WeekCap", 1);
-    setConfig(CONFIG_UINT32_JUSTICE_POINTS_TOTAL_CAP, "Currency.Rate.ValorPoints.WeekCap", 1);
+    setConfig(CONFIG_FLOAT_RATE_CONQUEST_POINTS_WEEK_CAP, "Currency.Rate.ConquestPoints.WeekCap", 1.0f);
+    setConfig(CONFIG_FLOAT_RATE_VALOR_POINTS_WEEK_CAP, "Currency.Rate.ValorPoints.WeekCap", 1.0f);
 
     m_relocation_ai_notify_delay = sConfig.GetIntDefault("Visibility.AIRelocationNotifyDelay", 1000u);
     m_relocation_lower_limit_sq  = pow(sConfig.GetFloatDefault("Visibility.RelocationLowerLimit",10), 2);
@@ -2231,7 +2231,7 @@ void World::ResetMonthlyQuests()
 
 void World::ResetCurrencyWeekCap()
 {
-    CharacterDatabase.Execute("UPDATE character_currency SET thisweek = 0");
+    CharacterDatabase.Execute("UPDATE `character_currency` SET `thisweek` = 0");
     for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
         if (itr->second->GetPlayer())
             itr->second->GetPlayer()->ResetCurrencyWeekCap();

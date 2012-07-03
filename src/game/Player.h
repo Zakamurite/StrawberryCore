@@ -124,6 +124,7 @@ struct PlayerCurrency
     PlayerCurrencyState state;
     uint32 totalCount;
     uint32 weekCount;
+    uint32 seasonCount;
 };
 
 enum CurrencyItems
@@ -2496,7 +2497,7 @@ class Player : public Unit
     public:
         uint32 GetCurrency(uint32 id) const;
         void SendCurrencies() const;
-        void ModifyCurrency(uint32 id, int32 count);
+        void ModifyCurrency(uint32 id, int32 count, bool modifyWeek = true);
         void UpdateMaxWeekRating(ConquestPointsSources source, uint8 slot);
         bool HasCurrency(uint32 id, uint32 count) const;
         void SetCurrency(uint32 id, uint32 count);

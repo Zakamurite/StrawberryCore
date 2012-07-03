@@ -830,6 +830,7 @@ struct CurrencyTypesEntry
     //char* description;                                    // 10
 
     bool HasPrecision() const { return Flags & CURRENCY_FLAG_HAS_PRECISION; }
+    bool HasSeasonCount() const { return Flags & CURRENCY_FLAG_HAS_SEASON_COUNT; }
 };
 
 struct DungeonEncounterEntry
