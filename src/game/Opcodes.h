@@ -475,6 +475,7 @@ enum Opcodes
     SMSG_STANDSTATE_UPDATE,
     SMSG_SET_CURRENCY_WEEK_LIMIT,
     SMSG_UPDATE_WORLD_STATE,
+    SMSG_PLAY_SOUND,
     MAX_OPCODE_VALUE
 };
 
@@ -982,7 +983,6 @@ enum Opcodes335a
     CMSG_MOVE_FEATHER_FALL_ACK                      = 0x2CF,
     CMSG_MOVE_WATER_WALK_ACK                        = 0x2D0,
     CMSG_MOVE_NOT_ACTIVE_MOVER                      = 0x2D1,
-    SMSG_PLAY_SOUND                                 = 0x2D2,
     SMSG_BATTLEFIELD_STATUS                         = 0x2D4,
     CMSG_BATTLEFIELD_PORT                           = 0x2D5,
     MSG_INSPECT_HONOR_STATS                         = 0x2D6,

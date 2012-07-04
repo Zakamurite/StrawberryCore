@@ -379,5 +379,6 @@ void InitOpcodeTable()
     OPCODE(SMSG_SET_CURRENCY,                 STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::HandleServerSide              );
     OPCODE(SMSG_SET_CURRENCY_WEEK_LIMIT,      STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::HandleServerSide              );
     OPCODE(SMSG_UPDATE_WORLD_STATE,           STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::HandleServerSide              );
+    OPCODE(SMSG_PLAY_SOUND,                   STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::HandleServerSide              );
 };
 

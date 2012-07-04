@@ -355,6 +355,7 @@
     <ClCompile Include="..\..\src\game\MovementHandler.cpp" />
     <ClCompile Include="..\..\src\game\NPCHandler.cpp" />
     <ClCompile Include="..\..\src\game\ObjectGridLoader.cpp" />
+    <ClCompile Include="..\..\src\game\PacketWorker.cpp" />
     <ClCompile Include="..\..\src\game\PetHandler.cpp" />
     <ClCompile Include="..\..\src\game\PetitionsHandler.cpp" />
     <ClCompile Include="..\..\src\game\PoolManager.cpp" />
@@ -1040,6 +1041,7 @@
     <ClInclude Include="..\..\src\game\MoveMapSharedDefines.h" />
     <ClInclude Include="..\..\src\game\NPCHandler.h" />
     <ClInclude Include="..\..\src\game\ObjectGridLoader.h" />
+    <ClInclude Include="..\..\src\game\PacketWorker.h" />
     <ClInclude Include="..\..\src\game\Path.h" />
     <ClInclude Include="..\..\src\game\PoolManager.h" />
     <ClInclude Include="..\..\src\game\QuestDef.h" />

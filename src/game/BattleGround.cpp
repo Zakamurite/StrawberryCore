@@ -785,7 +785,7 @@ void BattleGround::EndBattleGround(Team winner)
 
                 winner_arena_team->MemberWon(plr,loser_rating);
 
-                plr->ModifyCurrency(CURRENCY_TYPE_CONQUEST_POINTS, sWorld.getConfig(CONFIG_UINT32_ARENA_CONQUEST_POINTS_REWARD));
+                plr->ModifyCurrency(CURRENCY_TYPE_CONQUEST_ARENA_META, sWorld.getConfig(CONFIG_UINT32_ARENA_CONQUEST_POINTS_REWARD));
                 plr->UpdateMaxWeekRating(CP_SOURCE_ARENA, winner_arena_team->GetSlot());
 
                 if (member)
