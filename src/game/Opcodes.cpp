@@ -389,5 +389,6 @@ void InitOpcodeTable()
     //OPCODE(SMSG_TRADE_STATUS,                 STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::HandleServerSide              );
     OPCODE(CMSG_INITIATE_TRADE,               STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleInitiateTradeOpcode     );
     OPCODE(CMSG_USE_ITEM,                     STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleUseItemOpcode           );
+    OPCODE(SMSG_GUILD_COMMAND_RESULT,         STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::HandleServerSide              );
 };
 
