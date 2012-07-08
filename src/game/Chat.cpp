@@ -232,7 +232,8 @@ ChatCommand * ChatHandler::getCommandTable()
         { "sellerror",      SEC_ADMINISTRATOR,  false, &ChatHandler::HandleDebugSendSellErrorCommand,       "", NULL },
         { "setphaseshift",  SEC_ADMINISTRATOR,  false, &ChatHandler::HandleDebugSendSetPhaseShiftCommand,   "", NULL },
         { "spellfail",      SEC_ADMINISTRATOR,  false, &ChatHandler::HandleDebugSendSpellFailCommand,       "", NULL },
-        { NULL,             0,                  false, NULL,                                                "", NULL }
+        { "tradestatus",    SEC_ADMINISTRATOR,  false, &ChatHandler::HandleDebugSendTradeStatusCommand,     "", NULL },
+        { NULL,             0,                  false, NULL,                                                "", NULL },
     };
 
     static ChatCommand debugCommandTable[] =

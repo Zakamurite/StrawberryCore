@@ -32,35 +32,48 @@
 
 void WorldSession::SendTradeStatus(TradeStatus status)
 {
-    WorldPacket data;
+    WorldPacket data(SMSG_TRADE_STATUS, 4 + 8);
+
+    data.WriteBit(false);
+    data.WriteBits(status, 5);
 
     switch(status)
     {
-        case TRADE_STATUS_BEGIN_TRADE:
-            data.Initialize(SMSG_TRADE_STATUS, 4+8);
-            data << uint32(status);
-            data << uint64(0);
-            break;
-        case TRADE_STATUS_OPEN_WINDOW:
-            data.Initialize(SMSG_TRADE_STATUS, 4+4);
-            data << uint32(status);
-            data << uint32(0);                              // added in 2.4.0
-            break;
-        case TRADE_STATUS_CLOSE_WINDOW:
-            data.Initialize(SMSG_TRADE_STATUS, 4+4+1+4);
-            data << uint32(status);
-            data << uint32(0);
-            data << uint8(0);
+        case 0:
+        {
             data << uint32(0);
             break;
-        case TRADE_STATUS_ONLY_CONJURED:
-            data.Initialize(SMSG_TRADE_STATUS, 4+1);
-            data << uint32(status);
+        }
+        case 2:
+        case 26:
+        {
             data << uint8(0);
             break;
+        }
+        case 12:
+        {
+            uint8 guidMask[8] = { 2, 4, 6, 0, 1, 3, 7, 5 };
+            uint8 guidBytes[8] = { 4, 1, 2, 3, 0, 7, 6, 5 };
+            data.WriteGuidMask(0, guidMask, 8, 0);
+            data.WriteGuidBytes(0, guidBytes, 8, 0);
+            data << uint32(0);
+            break;
+        }
+        case 19:
+        case 24:
+        {
+            data << uint32(0);
+            data << uint32(0);
+            break;
+        }
+        case 31:
+        {
+            data.WriteBit(false);
+            data << uint32(0);
+            data << uint32(0);
+            break;
+        }
         default:
-            data.Initialize(SMSG_TRADE_STATUS, 4);
-            data << uint32(status);
             break;
     }
 
