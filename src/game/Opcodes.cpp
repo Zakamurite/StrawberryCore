@@ -394,6 +394,6 @@ void InitOpcodeTable()
     OPCODE(CMSG_LOOT_MONEY,                   STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleLootMoneyOpcode         );
     OPCODE(SMSG_LOOT_MONEY_NOTIFY,            STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::HandleServerSide              );
     OPCODE(SMSG_SPELL_FAILED_OTHER,           STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::HandleServerSide              );
-    //OPCODE(CMSG_QUERY_INSPECT_ACHIEVEMENTS,   STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleQueryInspectAchievementsOpcode};
-};
-
+    OPCODE(CMSG_QUERY_INSPECT_ACHIEVEMENTS,   STATUS_LOGGEDIN, PROCESS_THREADUNSAFE, &WorldSession::HandleQueryInspectAchievementsOpcode);
+    OPCODE(SMSG_RESPOND_INSPECT_ACHIEVEMENTS, STATUS_NEVER,    PROCESS_INPLACE,      &WorldSession::HandleServerSide              );
+}
