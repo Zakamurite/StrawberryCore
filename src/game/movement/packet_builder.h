@@ -32,8 +32,8 @@ namespace Movement
     public:
 
         static void WriteMonsterMove(const MoveSpline& mov, WorldPacket& data);
-        static void WriteBytes(const MoveSpline& mov, ByteBuffer& data);
-        static void WriteData(const MoveSpline& mov, ByteBuffer& data);
+        static void WriteCreateBits(const MoveSpline& moveSpline, ByteBuffer& data);
+        static void WriteCreateData(const MoveSpline& moveSpline, ByteBuffer& data);
     };
 }
 #endif // STRAWBERRYSERVER_PACKET_BUILDER_H
